@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Geist", "Arial", sans-serif;
+  --font-mono: "Geist Mono", "SFMono-Regular", "Consolas", monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #070b0f;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(44, 255, 173, 0.25);
+  color: #f4f1e8;
+}
+

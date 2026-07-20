@@ -1,0 +1,73 @@
+{
+  "generated_at": "2026-07-20T13:54:41Z",
+  "repetitions": 3,
+  "results": [
+    {
+      "provider": "judge0",
+      "status": "passed",
+      "base_url": "https://ce.judge0.com",
+      "authenticated": false,
+      "runtimes": {
+        "python": "Python (3.14.0)",
+        "cpp": "C++ (GCC 14.1.0)"
+      },
+      "runs": [
+        {
+          "language": "python",
+          "attempt": 1,
+          "accepted": true,
+          "latency_ms": 2817,
+          "provider_time_seconds": "1.067",
+          "provider_memory_kb": 52616,
+          "status": "Accepted"
+        },
+        {
+          "language": "python",
+          "attempt": 2,
+          "accepted": true,
+          "latency_ms": 2868,
+          "provider_time_seconds": "1.069",
+          "provider_memory_kb": 52712,
+          "status": "Accepted"
+        },
+        {
+          "language": "python",
+          "attempt": 3,
+          "accepted": true,
+          "latency_ms": 2856,
+          "provider_time_seconds": "1.061",
+          "provider_memory_kb": 52844,
+          "status": "Accepted"
+        },
+        {
+          "language": "cpp",
+          "attempt": 1,
+          "accepted": true,
+          "latency_ms": 2823,
+          "provider_time_seconds": "0.003",
+          "provider_memory_kb": 1316,
+          "status": "Accepted"
+        },
+        {
+          "language": "cpp",
+          "attempt": 2,
+          "accepted": true,
+          "latency_ms": 2534,
+          "provider_time_seconds": "0.003",
+          "provider_memory_kb": 1744,
+          "status": "Accepted"
+        },
+        {
+          "language": "cpp",
+          "attempt": 3,
+          "accepted": true,
+          "latency_ms": 2737,
+          "provider_time_seconds": "0.003",
+          "provider_memory_kb": 1376,
+          "status": "Accepted"
+        }
+      ],
+      "probe_elapsed_ms": 17516
+    }
+  ]
+}

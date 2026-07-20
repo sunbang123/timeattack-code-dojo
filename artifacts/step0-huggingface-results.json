@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-07-20T13:54:28Z",
+  "repetitions": 3,
+  "results": [
+    {
+      "provider": "huggingface",
+      "status": "passed",
+      "base_url": "https://router.huggingface.co/v1",
+      "model": "openai/gpt-oss-120b:groq",
+      "runs": [
+        {
+          "attempt": 1,
+          "schema_valid": true,
+          "passed": true,
+          "score": 100,
+          "latency_ms": 834
+        },
+        {
+          "attempt": 2,
+          "schema_valid": true,
+          "passed": true,
+          "score": 100,
+          "latency_ms": 728
+        },
+        {
+          "attempt": 3,
+          "schema_valid": true,
+          "passed": true,
+          "score": 100,
+          "latency_ms": 854
+        }
+      ],
+      "probe_elapsed_ms": 2416
+    }
+  ]
+}

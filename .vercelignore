@@ -1,0 +1,13 @@
+.env
+.env.*
+.venv
+node_modules
+.next
+.git
+.agents
+artifacts
+docs
+poc
+tests
+*.log
+

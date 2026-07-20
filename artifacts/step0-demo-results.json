@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-07-20T14:04:23Z",
+  "repetitions": 1,
+  "results": [
+    {
+      "provider": "judge0",
+      "status": "passed",
+      "base_url": "https://ce.judge0.com",
+      "authenticated": false,
+      "runtimes": {
+        "python": "Python (3.14.0)",
+        "cpp": "C++ (GCC 14.1.0)"
+      },
+      "runs": [
+        {
+          "language": "python",
+          "attempt": 1,
+          "accepted": true,
+          "latency_ms": 2847,
+          "provider_time_seconds": "1.061",
+          "provider_memory_kb": 52760,
+          "status": "Accepted",
+          "stdout": "42\n"
+        },
+        {
+          "language": "cpp",
+          "attempt": 1,
+          "accepted": true,
+          "latency_ms": 2505,
+          "provider_time_seconds": "0.003",
+          "provider_memory_kb": 1212,
+          "status": "Accepted",
+          "stdout": "42\n"
+        }
+      ],
+      "probe_elapsed_ms": 6049
+    },
+    {
+      "provider": "huggingface",
+      "status": "passed",
+      "base_url": "https://router.huggingface.co/v1",
+      "model": "openai/gpt-oss-120b:groq",
+      "runs": [
+        {
+          "attempt": 1,
+          "schema_valid": true,
+          "passed": true,
+          "score": 100,
+          "latency_ms": 815,
+          "evaluation": {
+            "passed": true,
+            "score": 100,
+            "feedback": "The pseudocode correctly reads the number of integers N, initializes a total accumulator, iterates exactly N times reading each integer, updates the total with each value, and finally prints the sum. All required steps are present and correctly ordered.",
+            "missing_steps": []
+          }
+        }
+      ],
+      "probe_elapsed_ms": 815
+    }
+  ]
+}
