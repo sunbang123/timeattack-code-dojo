@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timeattack-code-dojo.local/schemas/public-problem.schema.json",
+  "title": "Public problem definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "version", "title", "difficulty", "tags", "supported_languages", "statement", "examples", "modes"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "version": {"type": "integer", "minimum": 1},
+    "title": {"type": "string", "minLength": 1, "maxLength": 80},
+    "difficulty": {"enum": ["easy", "medium", "hard"]},
+    "tags": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "supported_languages": {"type": "array", "const": ["python", "cpp"]},
+    "statement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "description", "input", "output", "constraints"],
+      "properties": {
+        "summary": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "input": {"type": "string", "minLength": 1},
+        "output": {"type": "string", "minLength": 1},
+        "constraints": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      }
+    },
+    "examples": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["input", "output", "explanation"],
+        "properties": {
+          "input": {"type": "string"},
+          "output": {"type": "string"},
+          "explanation": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "modes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["beginner", "intermediate", "expert"],
+      "properties": {
+        "beginner": {"$ref": "#/$defs/beginnerMode"},
+        "intermediate": {"$ref": "#/$defs/intermediateMode"},
+        "expert": {"$ref": "#/$defs/expertMode"}
+      }
+    }
+  },
+  "$defs": {
+    "languageSources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python", "cpp"],
+      "properties": {
+        "python": {"type": "string", "minLength": 1},
+        "cpp": {"type": "string", "minLength": 1}
+      }
+    },
+    "beginnerMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time_limit_seconds", "answer_format", "prompt"],
+      "properties": {
+        "time_limit_seconds": {"type": "integer", "minimum": 60, "maximum": 3600},
+        "answer_format": {"const": "pseudocode"},
+        "prompt": {"type": "string", "minLength": 1}
+      }
+    },
+    "intermediateMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time_limit_seconds", "answer_format", "skeletons"],
+      "properties": {
+        "time_limit_seconds": {"type": "integer", "minimum": 60, "maximum": 3600},
+        "answer_format": {"const": "code"},
+        "skeletons": {"$ref": "#/$defs/languageSources"}
+      }
+    },
+    "expertMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time_limit_seconds", "answer_format", "starter_templates"],
+      "properties": {
+        "time_limit_seconds": {"type": "integer", "minimum": 60, "maximum": 3600},
+        "answer_format": {"const": "code"},
+        "starter_templates": {"$ref": "#/$defs/languageSources"}
+      }
+    }
+  }
+}
+

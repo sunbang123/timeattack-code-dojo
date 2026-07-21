@@ -1,0 +1,19 @@
+import { spawnSync } from "node:child_process";
+import { projectRoot, requireVenvPython } from "./python-runtime.mjs";
+
+try {
+  const result = spawnSync(
+    requireVenvPython(),
+    [
+      "scripts/validate_problem_bank.py",
+      "--judge0",
+      "--output",
+      "artifacts/step2-judge0-results.json",
+    ],
+    { cwd: projectRoot, stdio: "inherit" },
+  );
+  process.exit(result.status ?? 1);
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}

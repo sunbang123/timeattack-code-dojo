@@ -42,6 +42,16 @@ Step 0 외부 서비스 점검은 다음 명령으로 다시 실행할 수 있�
 .venv\Scripts\python.exe poc\step0_probe.py
 ```
 
+## 문제 조회 API
+
+Step 3 문제 조회 API는 난이도, 모드, 언어에 맞는 공개 데이터만 반환합니다.
+
+```text
+GET /api/problem?difficulty=easy&mode=intermediate&language=python
+```
+
+특정 문제는 `problem_id` 선택 파라미터로 조회할 수 있습니다. 전체 계약과 오류 형식은 [`docs/step3-problem-api.md`](docs/step3-problem-api.md), 문제은행 검증 방법은 [`docs/step2-problem-bank.md`](docs/step2-problem-bank.md)를 참고하세요.
+
 ## Vercel Preview
 
 저장소를 Vercel 프로젝트에 연결하면 Next.js 앱과 `api/index.py`의 Flask 앱이 별도 라우팅 설정 없이 함께 빌드됩니다. Preview 환경의 비밀값은 Vercel 프로젝트 설정에서 별도로 등록하고 저장소에는 넣지 않습니다.

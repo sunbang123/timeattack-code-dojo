@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "problem_id": "count-vowels",
+  "version": 1,
+  "pseudocode_rubric": {
+    "pass_score": 70,
+    "criteria": [
+      {"id": "initialize_count", "description": "개수 변수를 0으로 초기화한다.", "weight": 15},
+      {"id": "iterate_chars", "description": "모든 문자를 한 번씩 확인한다.", "weight": 25},
+      {"id": "detect_vowels", "description": "대소문자 모음을 정확히 판별해 개수를 늘린다.", "weight": 45},
+      {"id": "print_result", "description": "최종 개수를 출력한다.", "weight": 15}
+    ]
+  },
+  "reference_solutions": {
+    "python": "text = input()\nprint(sum(ch in 'aeiouAEIOU' for ch in text))\n",
+    "cpp": "#include <iostream>\n#include <string>\nusing namespace std;\nint main() { string s; getline(cin, s); int count = 0; for (char c : s) if (string(\"aeiouAEIOU\").find(c) != string::npos) ++count; cout << count << '\\n'; }\n"
+  },
+  "hidden_tests": [
+    {"name": "uppercase_only", "input": "AEIOU\n", "expected_output": "5\n"},
+    {"name": "with_spaces", "input": "Time Attack Dojo\n", "expected_output": "6\n"},
+    {"name": "no_vowels", "input": "bcdfg\n", "expected_output": "0\n"}
+  ]
+}

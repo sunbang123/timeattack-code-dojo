@@ -4,8 +4,15 @@ import os
 import uuid
 from typing import Any
 
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, abort, jsonify, request
 from werkzeug.exceptions import HTTPException
+
+from api.problem_service import (
+    DIFFICULTIES,
+    LANGUAGES,
+    MODES,
+    get_problem_response,
+)
 
 
 app = Flask(__name__)
@@ -48,6 +55,46 @@ def health() -> tuple[Response, int]:
     )
 
 
+def required_query_value(name: str, allowed: tuple[str, ...]) -> str:
+    values = request.args.getlist(name)
+    if not values or not values[0]:
+        abort(400, description=f"Missing required query parameter: {name}")
+    if len(values) != 1:
+        abort(400, description=f"Query parameter must appear once: {name}")
+    value = values[0]
+    if value not in allowed:
+        choices = ", ".join(allowed)
+        abort(400, description=f"Invalid {name}; expected one of: {choices}")
+    return value
+
+
+@app.get("/problem")
+@app.get("/api/problem")
+def problem() -> tuple[Response, int]:
+    allowed_parameters = {"difficulty", "mode", "language", "problem_id"}
+    unknown_parameters = sorted(set(request.args) - allowed_parameters)
+    if unknown_parameters:
+        abort(
+            400,
+            description=f"Unknown query parameter: {unknown_parameters[0]}",
+        )
+
+    difficulty = required_query_value("difficulty", DIFFICULTIES)
+    mode = required_query_value("mode", MODES)
+    language = required_query_value("language", LANGUAGES)
+    problem_ids = request.args.getlist("problem_id")
+    if len(problem_ids) > 1:
+        abort(400, description="Query parameter must appear once: problem_id")
+    problem_id = problem_ids[0].strip() if problem_ids else None
+    if problem_id == "":
+        abort(400, description="problem_id must not be empty")
+
+    payload = get_problem_response(difficulty, mode, language, problem_id)
+    if payload is None:
+        abort(404, description="Problem not found for the requested difficulty")
+    return jsonify(payload), 200
+
+
 @app.errorhandler(Exception)
 def handle_error(error: Exception) -> tuple[Response, int]:
     status_code = error.code if isinstance(error, HTTPException) else 500
@@ -68,4 +115,3 @@ if __name__ == "__main__":
         port=int(os.getenv("API_PORT", "5328")),
         debug=os.getenv("APP_ENV", "development") == "development",
     )
-

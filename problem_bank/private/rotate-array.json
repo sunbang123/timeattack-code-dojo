@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "problem_id": "rotate-array",
+  "version": 1,
+  "pseudocode_rubric": {
+    "pass_score": 70,
+    "criteria": [
+      {"id": "normalize_k", "description": "K를 N으로 나눈 나머지로 실제 이동량을 구한다.", "weight": 30},
+      {"id": "split_array", "description": "배열을 올바른 경계에서 두 부분으로 나눈다.", "weight": 30},
+      {"id": "join_parts", "description": "뒤쪽과 앞쪽 부분을 올바른 순서로 합친다.", "weight": 25},
+      {"id": "print_result", "description": "결과 배열을 요구 형식으로 출력한다.", "weight": 15}
+    ]
+  },
+  "reference_solutions": {
+    "python": "n, k = map(int, input().split())\nvalues = list(map(int, input().split()))\nk %= n\nresult = values[-k:] + values[:-k] if k else values\nprint(*result)\n",
+    "cpp": "#include <iostream>\n#include <vector>\nusing namespace std;\nint main() { int n; long long k; cin >> n >> k; vector<long long> a(n); for (auto &x : a) cin >> x; k %= n; for (int i = 0; i < n; ++i) { if (i) cout << ' '; cout << a[(i - k + n) % n]; } cout << '\\n'; }\n"
+  },
+  "hidden_tests": [
+    {"name": "single_value", "input": "1 100\n42\n", "expected_output": "42\n"},
+    {"name": "large_k", "input": "4 6\n1 2 3 4\n", "expected_output": "3 4 1 2\n"},
+    {"name": "full_rotation", "input": "5 5\n-1 0 1 2 3\n", "expected_output": "-1 0 1 2 3\n"}
+  ]
+}

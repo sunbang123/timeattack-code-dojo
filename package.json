@@ -13,9 +13,12 @@
     "setup:python": "node scripts/setup-python.mjs",
     "build": "next build",
     "lint": "eslint .",
-    "test": "pnpm test:web && pnpm test:api",
+    "test": "pnpm test:web && pnpm test:api && pnpm test:problems",
     "test:web": "tsc --noEmit",
     "test:api": "node scripts/test-api.mjs",
+    "test:problems": "node scripts/test-problems.mjs",
+    "test:problems:cpp": "node scripts/test-problems-cpp.mjs",
+    "test:problems:judge0": "node scripts/test-problems-judge0.mjs",
     "check": "pnpm lint && pnpm test && pnpm build"
   },
   "dependencies": {

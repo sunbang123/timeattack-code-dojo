@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rotate-array",
+  "version": 1,
+  "title": "배열 오른쪽 회전",
+  "difficulty": "medium",
+  "tags": ["array", "modulo"],
+  "supported_languages": ["python", "cpp"],
+  "statement": {
+    "summary": "배열을 오른쪽으로 K칸 회전합니다.",
+    "description": "길이 N인 배열을 오른쪽으로 K칸 회전한 결과를 출력하세요. 오른쪽 끝에서 밀려난 원소는 배열의 맨 앞으로 이동합니다.",
+    "input": "첫 줄에 N과 K, 둘째 줄에 N개의 정수가 주어집니다.",
+    "output": "회전한 배열의 원소를 공백으로 구분해 출력합니다.",
+    "constraints": ["1 <= N <= 100,000", "0 <= K <= 1,000,000,000", "각 원소의 절댓값은 1,000,000,000 이하입니다."]
+  },
+  "examples": [
+    {"input": "5 2\n1 2 3 4 5\n", "output": "4 5 1 2 3\n", "explanation": "오른쪽 끝의 4, 5가 순서를 유지한 채 앞으로 이동합니다."},
+    {"input": "3 0\n7 8 9\n", "output": "7 8 9\n", "explanation": "0칸 회전하면 배열이 바뀌지 않습니다."}
+  ],
+  "modes": {
+    "beginner": {
+      "time_limit_seconds": 300,
+      "answer_format": "pseudocode",
+      "prompt": "K가 N보다 클 수 있음을 고려해 실제 이동량을 구하고 배열을 나누어 합치는 과정을 의사코드로 작성하세요."
+    },
+    "intermediate": {
+      "time_limit_seconds": 600,
+      "answer_format": "code",
+      "skeletons": {
+        "python": "n, k = map(int, input().split())\nvalues = list(map(int, input().split()))\n# TODO: 배열을 오른쪽으로 회전하세요.\n",
+        "cpp": "#include <iostream>\n#include <vector>\nusing namespace std;\nint main() {\n    int n; long long k; cin >> n >> k;\n    vector<long long> values(n);\n    for (auto &value : values) cin >> value;\n    // TODO: 배열을 오른쪽으로 회전하세요.\n    return 0;\n}\n"
+      }
+    },
+    "expert": {
+      "time_limit_seconds": 900,
+      "answer_format": "code",
+      "starter_templates": {
+        "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",
+        "cpp": "#include <iostream>\nusing namespace std;\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    return 0;\n}\n"
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "id": "count-vowels",
+  "version": 1,
+  "title": "모음 개수 세기",
+  "difficulty": "easy",
+  "tags": ["string", "counting"],
+  "supported_languages": ["python", "cpp"],
+  "statement": {
+    "summary": "문자열에 포함된 영문 모음의 개수를 셉니다.",
+    "description": "한 줄의 문자열에서 a, e, i, o, u를 대소문자 구분 없이 세어 출력하세요.",
+    "input": "첫 줄에 영문자와 공백으로 이루어진 문자열이 주어집니다.",
+    "output": "영문 모음의 총개수를 출력합니다.",
+    "constraints": ["1 <= 문자열 길이 <= 1,000", "문자열은 영문자와 공백으로만 이루어집니다."]
+  },
+  "examples": [
+    {"input": "Codex\n", "output": "2\n", "explanation": "o와 e가 모음입니다."},
+    {"input": "rhythm\n", "output": "0\n", "explanation": "영문 모음이 없습니다."}
+  ],
+  "modes": {
+    "beginner": {
+      "time_limit_seconds": 300,
+      "answer_format": "pseudocode",
+      "prompt": "문자열의 각 문자를 확인하고 모음일 때 개수를 늘리는 과정을 의사코드로 작성하세요."
+    },
+    "intermediate": {
+      "time_limit_seconds": 600,
+      "answer_format": "code",
+      "skeletons": {
+        "python": "text = input()\ncount = 0\n# TODO: 각 문자가 모음인지 확인하세요.\nprint(count)\n",
+        "cpp": "#include <iostream>\n#include <string>\nusing namespace std;\nint main() {\n    string text; getline(cin, text);\n    int count = 0;\n    // TODO: 각 문자가 모음인지 확인하세요.\n    cout << count << '\\n';\n}\n"
+      }
+    },
+    "expert": {
+      "time_limit_seconds": 900,
+      "answer_format": "code",
+      "starter_templates": {
+        "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",
+        "cpp": "#include <iostream>\nusing namespace std;\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    return 0;\n}\n"
+      }
+    }
+  }
+}

@@ -1,0 +1,456 @@
+{
+  "generated_at": "2026-07-20T23:37:21Z",
+  "bank_version": 1,
+  "bank_sha256": "5a25bc5642b3eff6163ad82c8988b41590348d931b2e1a57af4f98c4bf781577",
+  "problem_count": 6,
+  "difficulty_counts": {
+    "easy": 2,
+    "medium": 2,
+    "hard": 2
+  },
+  "modes": [
+    "beginner",
+    "expert",
+    "intermediate"
+  ],
+  "languages": [
+    "python",
+    "cpp"
+  ],
+  "python": {
+    "runtime": "3.12.13",
+    "passed": 30,
+    "total": 30,
+    "cases": [
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "example_1",
+        "accepted": true,
+        "elapsed_ms": 30.44
+      },
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "example_2",
+        "accepted": true,
+        "elapsed_ms": 30.02
+      },
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "both_zero",
+        "accepted": true,
+        "elapsed_ms": 29.68
+      },
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "opposite_limits",
+        "accepted": true,
+        "elapsed_ms": 29.77
+      },
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "negative_limit",
+        "accepted": true,
+        "elapsed_ms": 30.42
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "example_1",
+        "accepted": true,
+        "elapsed_ms": 30.04
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "example_2",
+        "accepted": true,
+        "elapsed_ms": 28.98
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "uppercase_only",
+        "accepted": true,
+        "elapsed_ms": 28.99
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "with_spaces",
+        "accepted": true,
+        "elapsed_ms": 28.51
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "no_vowels",
+        "accepted": true,
+        "elapsed_ms": 29.26
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "example_1",
+        "accepted": true,
+        "elapsed_ms": 29.02
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "example_2",
+        "accepted": true,
+        "elapsed_ms": 28.5
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "nested_valid",
+        "accepted": true,
+        "elapsed_ms": 28.59
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "unclosed",
+        "accepted": true,
+        "elapsed_ms": 29.68
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "closing_first",
+        "accepted": true,
+        "elapsed_ms": 28.93
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "example_1",
+        "accepted": true,
+        "elapsed_ms": 28.87
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "example_2",
+        "accepted": true,
+        "elapsed_ms": 28.97
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "single_value",
+        "accepted": true,
+        "elapsed_ms": 30.51
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "large_k",
+        "accepted": true,
+        "elapsed_ms": 28.99
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "full_rotation",
+        "accepted": true,
+        "elapsed_ms": 28.56
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "example_1",
+        "accepted": true,
+        "elapsed_ms": 31.93
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "example_2",
+        "accepted": true,
+        "elapsed_ms": 30.52
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "same_start_end",
+        "accepted": true,
+        "elapsed_ms": 32.63
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "multiple_routes",
+        "accepted": true,
+        "elapsed_ms": 30.99
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "indirect_is_shorter",
+        "accepted": true,
+        "elapsed_ms": 30.76
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "example_1",
+        "accepted": true,
+        "elapsed_ms": 28.98
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "example_2",
+        "accepted": true,
+        "elapsed_ms": 29.19
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "single_value",
+        "accepted": true,
+        "elapsed_ms": 29.51
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "all_equal",
+        "accepted": true,
+        "elapsed_ms": 31.01
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "mixed_values",
+        "accepted": true,
+        "elapsed_ms": 30.21
+      }
+    ]
+  },
+  "cpp": {
+    "provider": "judge0",
+    "base_url": "https://ce.judge0.com",
+    "runtime": "C++ (GCC 14.1.0)",
+    "passed": 30,
+    "total": 30,
+    "cases": [
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "example_1",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 772
+      },
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "example_2",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.006",
+        "provider_memory_kb": 1044
+      },
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "both_zero",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 944
+      },
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "opposite_limits",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 756
+      },
+      {
+        "problem_id": "sum-two-numbers",
+        "case": "negative_limit",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 768
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "example_1",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 952
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "example_2",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 956
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "uppercase_only",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 952
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "with_spaces",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 776
+      },
+      {
+        "problem_id": "count-vowels",
+        "case": "no_vowels",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 952
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "example_1",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 888
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "example_2",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 888
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "nested_valid",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 888
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "unclosed",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 852
+      },
+      {
+        "problem_id": "balanced-brackets",
+        "case": "closing_first",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 960
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "example_1",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 908
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "example_2",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 948
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "single_value",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 1028
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "large_k",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 948
+      },
+      {
+        "problem_id": "rotate-array",
+        "case": "full_rotation",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 1028
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "example_1",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.003",
+        "provider_memory_kb": 988
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "example_2",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.003",
+        "provider_memory_kb": 1164
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "same_start_end",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.003",
+        "provider_memory_kb": 964
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "multiple_routes",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 984
+      },
+      {
+        "problem_id": "shortest-path",
+        "case": "indirect_is_shorter",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 1076
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "example_1",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.004",
+        "provider_memory_kb": 1028
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "example_2",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.003",
+        "provider_memory_kb": 1024
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "single_value",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.005",
+        "provider_memory_kb": 1028
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "all_equal",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.003",
+        "provider_memory_kb": 1204
+      },
+      {
+        "problem_id": "longest-increasing-subsequence",
+        "case": "mixed_values",
+        "accepted": true,
+        "status": "Accepted",
+        "provider_time_seconds": "0.003",
+        "provider_memory_kb": 1076
+      }
+    ]
+  }
+}
