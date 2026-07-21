@@ -7,7 +7,6 @@ export type Mode = (typeof MODES)[number];
 export type Language = (typeof LANGUAGES)[number];
 
 export type ProblemSelection = {
-  difficulty: Difficulty;
   mode: Mode;
   language: Language;
   problemId?: string;
@@ -63,6 +62,22 @@ export type SubmissionResult = {
   total_tests?: number;
   detail?: string;
   missing_steps?: string[];
+  solution_access_token?: string;
+};
+
+export type SolutionPayload = {
+  problem_id: string;
+  version: number;
+  mode: Mode;
+  language: Language;
+  title: string;
+  summary: string;
+  steps: string[];
+  reference_solution: string;
+};
+
+export type SolutionResponse = {
+  solution: SolutionPayload;
 };
 
 type ErrorResponse = {
@@ -83,7 +98,6 @@ export class ProblemApiError extends Error {
 
 export function buildProblemUrl(selection: ProblemSelection): string {
   const parameters = new URLSearchParams({
-    difficulty: selection.difficulty,
     mode: selection.mode,
     language: selection.language,
   });
@@ -133,6 +147,31 @@ export async function submitAnswer(
     );
   }
   return payload.result;
+}
+
+export async function fetchSolution(
+  problem: Pick<ProblemPayload, "id" | "version" | "mode" | "language">,
+  solutionAccessToken: string,
+): Promise<SolutionPayload> {
+  const response = await fetch("/api/solution", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      problem_id: problem.id,
+      version: problem.version,
+      mode: problem.mode,
+      language: problem.language,
+      solution_access_token: solutionAccessToken,
+    }),
+  });
+  const payload = (await response.json()) as ErrorResponse & Partial<SolutionResponse>;
+  if (!response.ok || !payload.solution) {
+    throw new ProblemApiError(
+      payload.error?.message ?? `풀이를 불러오지 못했습니다. (HTTP ${response.status})`,
+      response.status,
+    );
+  }
+  return payload.solution;
 }
 
 export function initialAnswer(problem: ProblemPayload): string {

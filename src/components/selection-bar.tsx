@@ -1,18 +1,11 @@
 "use client";
 
 import type {
-  Difficulty,
   Language,
   Mode,
   ProblemSelection,
   ProblemSummary,
 } from "@/lib/problem-api";
-
-const difficultyOptions: { value: Difficulty; label: string; caption: string }[] = [
-  { value: "easy", label: "쉬움", caption: "8–16분" },
-  { value: "medium", label: "보통", caption: "10–18분" },
-  { value: "hard", label: "어려움", caption: "12–20분" },
-];
 
 const modeOptions: { value: Mode; label: string; caption: string }[] = [
   { value: "beginner", label: "초보", caption: "의사코드" },
@@ -24,6 +17,12 @@ const languageOptions: { value: Language; label: string }[] = [
   { value: "python", label: "Python" },
   { value: "cpp", label: "C++" },
 ];
+
+const difficultyLabels: Record<ProblemSummary["difficulty"], string> = {
+  easy: "쉬움",
+  medium: "보통",
+  hard: "어려움",
+};
 
 const segmentClass =
   "rounded-lg border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2cffad]/70";
@@ -46,37 +45,13 @@ export function SelectionBar({
   return (
     <section
       aria-label="문제 설정"
-      className="grid gap-5 border-b border-white/10 bg-[#0a0f13]/95 px-4 py-4 backdrop-blur md:grid-cols-[0.8fr_1.1fr_1.35fr_0.75fr] md:px-6"
+      className="grid gap-5 border-b border-white/10 bg-[#0a0f13]/95 px-4 py-4 backdrop-blur md:grid-cols-[minmax(0,1.35fr)_1.35fr_0.75fr] md:px-6"
     >
-      <fieldset disabled={disabled}>
-        <legend className="mb-2 font-mono text-[10px] tracking-[0.18em] text-white/35">DIFFICULTY</legend>
-        <div className="grid grid-cols-3 gap-1.5">
-          {difficultyOptions.map((option) => {
-            const active = selection.difficulty === option.value;
-            return (
-              <button
-                key={option.value}
-                aria-pressed={active}
-                className={`${segmentClass} ${
-                  active
-                    ? "border-[#ff7a59]/60 bg-[#ff7a59]/12 text-[#ffad96]"
-                    : "border-white/8 bg-white/[0.025] text-white/45 hover:border-white/20 hover:text-white/75"
-                }`}
-                onClick={() =>
-                  onChange({ ...selection, difficulty: option.value, problemId: undefined })
-                }
-                type="button"
-              >
-                <span className="block text-xs font-medium">{option.label}</span>
-                <span className="mt-0.5 block font-mono text-[9px] opacity-55">{option.caption}</span>
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
-
       <label className="block">
-        <span className="mb-2 block font-mono text-[10px] tracking-[0.18em] text-white/35">PROBLEM</span>
+        <span className="mb-2 flex items-center justify-between font-mono text-[10px] tracking-[0.18em] text-white/35">
+          <span>ALL PROBLEMS</span>
+          <span>{availableProblems.length}개</span>
+        </span>
         <select
           className="h-[58px] w-full rounded-lg border border-white/10 bg-[#10171c] px-3 text-sm text-white/80 outline-none transition focus:border-[#2cffad]/50 focus:ring-2 focus:ring-[#2cffad]/20 disabled:opacity-50"
           disabled={disabled || availableProblems.length === 0}
@@ -87,7 +62,7 @@ export function SelectionBar({
         >
           {availableProblems.map((problem) => (
             <option key={problem.id} value={problem.id}>
-              {problem.title}
+              [{difficultyLabels[problem.difficulty]}] {problem.title}
             </option>
           ))}
         </select>

@@ -97,7 +97,6 @@ class ProblemApiTest(unittest.TestCase):
 
     def get_problem(self, **parameters: str):
         defaults = {
-            "difficulty": "easy",
             "mode": "beginner",
             "language": "python",
         }
@@ -113,7 +112,7 @@ class ProblemApiTest(unittest.TestCase):
                     problem = response.json["problem"]
                     self.assertEqual(problem["mode"], mode)
                     self.assertEqual(problem["language"], language)
-                    self.assertEqual(response.json["bank_version"], 2)
+                    self.assertEqual(response.json["bank_version"], 3)
                     if mode == "beginner":
                         self.assertEqual(problem["answer_format"], "pseudocode")
                         self.assertIn("prompt", problem)
@@ -125,9 +124,9 @@ class ProblemApiTest(unittest.TestCase):
 
     def test_all_difficulties_return_a_problem(self) -> None:
         expected_ids = {
-            "easy": "sum-two-numbers",
-            "medium": "balanced-brackets",
-            "hard": "shortest-path",
+            "easy": "add-two-integers",
+            "medium": "valid-bracket-string",
+            "hard": "shortest-path-basic",
         }
         for difficulty, expected_id in expected_ids.items():
             with self.subTest(difficulty=difficulty):
@@ -153,14 +152,28 @@ class ProblemApiTest(unittest.TestCase):
                         self.assertEqual(response.status_code, 200)
                         self.assertEqual(response.json["problem"]["id"], entry["id"])
 
-    def test_problem_id_selects_a_specific_problem(self) -> None:
+    def test_problem_id_selects_from_the_complete_problem_list(self) -> None:
         response = self.get_problem(problem_id="count-vowels")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json["problem"]["id"], "count-vowels")
         self.assertEqual(
             [item["id"] for item in response.json["available_problems"]],
-            ["sum-two-numbers", "count-vowels"],
+            [entry["id"] for entry in load_manifest()["problems"]],
+        )
+
+    def test_difficulty_is_optional_and_only_filters_when_requested(self) -> None:
+        complete = self.get_problem()
+        easy_only = self.get_problem(difficulty="easy")
+
+        self.assertEqual(complete.status_code, 200)
+        self.assertEqual(len(complete.json["available_problems"]), 12)
+        self.assertEqual(len(easy_only.json["available_problems"]), 4)
+        self.assertTrue(
+            all(
+                problem["difficulty"] == "easy"
+                for problem in easy_only.json["available_problems"]
+            )
         )
 
     def test_response_never_contains_private_or_unrequested_mode_fields(self) -> None:

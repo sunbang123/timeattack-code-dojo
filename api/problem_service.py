@@ -49,11 +49,11 @@ def load_public_problem(problem_id: str) -> dict[str, Any]:
 
 
 def find_problem_entry(
-    difficulty: str, problem_id: str | None = None
+    difficulty: str | None = None, problem_id: str | None = None
 ) -> dict[str, Any] | None:
     entries = load_manifest()["problems"]
     for entry in entries:
-        if entry.get("difficulty") != difficulty:
+        if difficulty is not None and entry.get("difficulty") != difficulty:
             continue
         if problem_id is not None and entry.get("id") != problem_id:
             continue
@@ -61,10 +61,10 @@ def find_problem_entry(
     return None
 
 
-def list_problem_summaries(difficulty: str) -> list[dict[str, Any]]:
+def list_problem_summaries(difficulty: str | None = None) -> list[dict[str, Any]]:
     summaries = []
     for entry in load_manifest()["problems"]:
-        if entry.get("difficulty") != difficulty:
+        if difficulty is not None and entry.get("difficulty") != difficulty:
             continue
         public = load_public_problem(entry["id"])
         summaries.append(
@@ -119,7 +119,10 @@ def serialize_problem(
 
 
 def get_problem_response(
-    difficulty: str, mode: str, language: str, problem_id: str | None = None
+    difficulty: str | None,
+    mode: str,
+    language: str,
+    problem_id: str | None = None,
 ) -> dict[str, Any] | None:
     entry = find_problem_entry(difficulty, problem_id)
     if entry is None:

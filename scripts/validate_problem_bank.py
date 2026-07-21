@@ -100,11 +100,11 @@ def load_and_validate_bank() -> list[dict[str, Any]]:
     manifest = read_json(BANK / "manifest.json")
     entries = manifest.get("problems", [])
     require(manifest.get("schema_version") == "1.0.0", "Invalid manifest schema_version")
-    require(manifest.get("bank_version") == 2, "Invalid bank_version")
-    require(len(entries) == 6, "The MVP bank must contain exactly six problems")
+    require(manifest.get("bank_version") == 3, "Invalid bank_version")
+    require(len(entries) == 12, "The problem bank must contain exactly twelve problems")
     ids = [entry.get("id") for entry in entries]
     require(len(set(ids)) == len(ids), "Problem ids must be unique")
-    require(Counter(entry.get("difficulty") for entry in entries) == Counter({"easy": 2, "medium": 2, "hard": 2}), "Expected two problems per difficulty")
+    require(Counter(entry.get("difficulty") for entry in entries) == Counter({"easy": 4, "medium": 4, "hard": 4}), "Expected four problems per difficulty")
 
     loaded: list[dict[str, Any]] = []
     for entry in entries:
@@ -388,7 +388,7 @@ def main() -> int:
         python_result = run_python_reference_cases(items)
         summary: dict[str, Any] = {
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "bank_version": 1,
+            "bank_version": 3,
             "bank_sha256": bank_digest(),
             "problem_count": len(items),
             "difficulty_counts": dict(Counter(item["manifest"]["difficulty"] for item in items)),

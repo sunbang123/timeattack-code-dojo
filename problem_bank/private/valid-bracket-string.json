@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "problem_id": "valid-bracket-string",
+  "version": 1,
+  "pseudocode_rubric": {
+    "pass_score": 70,
+    "criteria": [
+      {"id": "initialize_stack", "description": "빈 스택을 준비한다.", "weight": 15},
+      {"id": "push_opening", "description": "여는 괄호를 스택에 넣는다.", "weight": 20},
+      {"id": "match_closing", "description": "닫는 괄호를 스택의 top과 종류까지 비교한다.", "weight": 45},
+      {"id": "final_check", "description": "불일치 여부와 마지막 빈 스택 여부로 답을 정한다.", "weight": 20}
+    ]
+  },
+  "reference_solutions": {
+    "python": "s = input().strip()\nstack = []\npairs = {')': '(', ']': '[', '}': '{'}\nvalid = True\nfor ch in s:\n    if ch in '([{':\n        stack.append(ch)\n    elif not stack or stack.pop() != pairs[ch]:\n        valid = False\n        break\nprint('YES' if valid and not stack else 'NO')\n",
+    "cpp": "#include <iostream>\n#include <stack>\n#include <string>\nusing namespace std;\nint main() { string s; cin >> s; stack<char> st; bool ok = true; for (char c : s) { if (c == '(' || c == '[' || c == '{') st.push(c); else { char expected = c == ')' ? '(' : c == ']' ? '[' : '{'; if (st.empty() || st.top() != expected) { ok = false; break; } st.pop(); } } cout << (ok && st.empty() ? \"YES\" : \"NO\") << '\\n'; }\n"
+  },
+  "hidden_tests": [
+    {"name": "nested_valid", "input": "{[()]}\n", "expected_output": "YES\n"},
+    {"name": "unclosed", "input": "(((\n", "expected_output": "NO\n"},
+    {"name": "closing_first", "input": "}{\n", "expected_output": "NO\n"}
+  ]
+}

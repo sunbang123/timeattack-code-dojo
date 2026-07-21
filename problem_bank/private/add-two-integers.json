@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "problem_id": "add-two-integers",
+  "version": 1,
+  "pseudocode_rubric": {
+    "pass_score": 70,
+    "criteria": [
+      {"id": "read_input", "description": "두 정수를 입력받는다.", "weight": 20},
+      {"id": "compute_sum", "description": "두 정수를 더한다.", "weight": 40},
+      {"id": "print_result", "description": "계산 결과를 출력한다.", "weight": 30},
+      {"id": "clear_order", "description": "실행 순서가 명확하다.", "weight": 10}
+    ]
+  },
+  "reference_solutions": {
+    "python": "a, b = map(int, input().split())\nprint(a + b)\n",
+    "cpp": "#include <iostream>\nusing namespace std;\nint main() { long long a, b; cin >> a >> b; cout << a + b << '\\n'; }\n"
+  },
+  "hidden_tests": [
+    {"name": "both_zero", "input": "0 0\n", "expected_output": "0\n"},
+    {"name": "opposite_limits", "input": "1000000000 -1000000000\n", "expected_output": "0\n"},
+    {"name": "negative_limit", "input": "-999999999 -1\n", "expected_output": "-1000000000\n"}
+  ]
+}

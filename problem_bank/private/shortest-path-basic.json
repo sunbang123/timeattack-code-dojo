@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "problem_id": "shortest-path-basic",
+  "version": 1,
+  "pseudocode_rubric": {
+    "pass_score": 70,
+    "criteria": [
+      {"id": "initialize_distances", "description": "거리를 무한대로 두고 시작점만 0으로 초기화한다.", "weight": 20},
+      {"id": "priority_queue", "description": "최소 거리 후보를 우선순위 큐로 관리한다.", "weight": 25},
+      {"id": "relax_edges", "description": "인접 간선을 완화하고 더 짧아진 정점을 큐에 넣는다.", "weight": 40},
+      {"id": "print_destination", "description": "도착 정점의 최종 거리를 출력한다.", "weight": 15}
+    ]
+  },
+  "reference_solutions": {
+    "python": "import heapq\n\nn, m, start, end = map(int, input().split())\ngraph = [[] for _ in range(n + 1)]\nfor _ in range(m):\n    u, v, w = map(int, input().split())\n    graph[u].append((v, w))\n    graph[v].append((u, w))\ndistance = [float('inf')] * (n + 1)\ndistance[start] = 0\nqueue = [(0, start)]\nwhile queue:\n    current_distance, node = heapq.heappop(queue)\n    if current_distance != distance[node]:\n        continue\n    for neighbor, weight in graph[node]:\n        candidate = current_distance + weight\n        if candidate < distance[neighbor]:\n            distance[neighbor] = candidate\n            heapq.heappush(queue, (candidate, neighbor))\nprint(distance[end])\n",
+    "cpp": "#include <functional>\n#include <iostream>\n#include <limits>\n#include <queue>\n#include <utility>\n#include <vector>\nusing namespace std;\nint main() { int n, m, start, destination; cin >> n >> m >> start >> destination; vector<vector<pair<int, int>>> graph(n + 1); while (m--) { int u, v, w; cin >> u >> v >> w; graph[u].push_back({v, w}); graph[v].push_back({u, w}); } const long long INF = numeric_limits<long long>::max(); vector<long long> distance(n + 1, INF); priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq; distance[start] = 0; pq.push({0, start}); while (!pq.empty()) { auto [current, node] = pq.top(); pq.pop(); if (current != distance[node]) continue; for (auto [next, weight] : graph[node]) { long long candidate = current + weight; if (candidate < distance[next]) { distance[next] = candidate; pq.push({candidate, next}); } } } cout << distance[destination] << '\\n'; }\n"
+  },
+  "hidden_tests": [
+    {"name": "same_start_end", "input": "1 0 1 1\n", "expected_output": "0\n"},
+    {"name": "multiple_routes", "input": "5 7 1 5\n1 2 10\n1 3 2\n3 2 3\n2 4 1\n3 4 9\n4 5 4\n2 5 20\n", "expected_output": "10\n"},
+    {"name": "indirect_is_shorter", "input": "4 5 1 4\n1 4 100\n1 2 20\n2 3 20\n3 4 20\n1 3 70\n", "expected_output": "60\n"}
+  ]
+}

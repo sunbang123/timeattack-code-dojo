@@ -44,17 +44,17 @@ Step 0 외부 서비스 점검은 다음 명령으로 다시 실행할 수 있�
 
 ## 문제 조회 API
 
-Step 3 문제 조회 API는 난이도, 모드, 언어에 맞는 공개 데이터만 반환합니다.
+Step 3 문제 조회 API는 등록된 12개 문제의 공개 목록과 선택한 모드·언어의 문제 데이터를 반환합니다. 모든 문제는 초보·중수·고수 모드와 Python/C++를 지원합니다.
 
 ```text
-GET /api/problem?difficulty=easy&mode=intermediate&language=python
+GET /api/problem?mode=intermediate&language=python
 ```
 
-특정 문제는 `problem_id` 선택 파라미터로 조회할 수 있습니다. 전체 계약과 오류 형식은 [`docs/step3-problem-api.md`](docs/step3-problem-api.md), 문제은행 검증 방법은 [`docs/step2-problem-bank.md`](docs/step2-problem-bank.md)를 참고하세요.
+특정 문제는 `problem_id`로 조회합니다. `difficulty`는 이전 클라이언트 호환용 선택 필터이며, 생략하면 전체 문제가 표시됩니다. 전체 계약과 오류 형식은 [`docs/step3-problem-api.md`](docs/step3-problem-api.md), 문제은행 검증 방법은 [`docs/step2-problem-bank.md`](docs/step2-problem-bank.md)를 참고하세요.
 
 ## 학습 화면
 
-학습 화면은 난이도·문제·학습 모드·언어 전환, Monaco 코드 편집기, 미제출 답안 경고, 답안 제출과 채점 결과, 로딩·빈 상태·오류·재시도 UI를 제공합니다. 로컬에서도 제출할 수 있으며, Flask API가 코드 답안은 Judge0로, 의사코드 답안은 Hugging Face로 전송해 채점합니다. 의사코드 채점에는 `.env` 또는 `.env.local`의 `HF_TOKEN`이 필요합니다. 자세한 동작과 검증 방법은 [`docs/step4-learning-ui.md`](docs/step4-learning-ui.md)를 참고하세요.
+학습 화면은 전체 문제·학습 모드·언어 전환, Monaco 코드 편집기, 미제출 답안 경고, 답안 제출과 채점 결과, 로딩·빈 상태·오류·재시도 UI를 제공합니다. 초보 의사코드는 정답 도출이 불가능하거나 핵심 논리가 틀린 경우에만 오답으로 판정합니다. 모든 모드는 첫 오답 뒤 `정답보기`가 활성화되며, 사용자가 버튼을 누른 뒤에만 별도 풀이 페이지가 정답을 요청합니다. 로컬에서도 제출할 수 있으며, Flask API가 코드 답안은 Judge0로, 의사코드 답안은 Hugging Face로 전송해 채점합니다. 의사코드 채점에는 `.env` 또는 `.env.local`의 `HF_TOKEN`이 필요합니다. 자세한 동작과 검증 방법은 [`docs/step4-learning-ui.md`](docs/step4-learning-ui.md)를 참고하세요.
 
 ## Vercel Preview
 

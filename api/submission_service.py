@@ -235,20 +235,50 @@ def _grade_pseudocode(
             "type": "object",
             "additionalProperties": False,
             "properties": {
-                "passed": {"type": "boolean"},
+                "answer_derivable": {
+                    "type": "boolean",
+                    "description": "제출한 절차에서 요구 결과를 산출하는 흐름을 따라갈 수 있는지 여부",
+                },
+                "has_logical_error": {
+                    "type": "boolean",
+                    "description": "실제로 잘못된 결과를 만드는 핵심 논리 오류가 있는지 여부",
+                },
                 "score": {"type": "integer", "minimum": 0, "maximum": 100},
                 "feedback": {"type": "string"},
                 "missing_steps": {"type": "array", "items": {"type": "string"}},
             },
-            "required": ["passed", "score", "feedback", "missing_steps"],
+            "required": [
+                "answer_derivable",
+                "has_logical_error",
+                "score",
+                "feedback",
+                "missing_steps",
+            ],
         },
     }
     messages = [
         {
             "role": "system",
             "content": (
-                "당신은 엄격하지만 친절한 알고리즘 튜터입니다. 제공된 문제와 평가 기준만으로 "
-                "의사코드를 채점하세요. 답변은 한국어로 짧고 구체적으로 작성하세요."
+                "당신은 초보 학습자의 의사코드를 관대하게 평가하는 알고리즘 튜터입니다. "
+                "최종 통과 여부는 서버가 계산하므로 다음 두 사실을 서로 독립적으로 판단하세요.\n"
+                "- answer_derivable: 제출한 절차와 의도에서 문제의 요구 결과를 어떻게 산출하는지 "
+                "충분히 따라갈 수 있으면 true입니다. 계산의 옳고 그름은 이 필드가 아니라 "
+                "has_logical_error로 판단하세요.\n"
+                "- has_logical_error: 답안의 조건, 계산, 갱신 또는 추론에 실제로 잘못된 결과를 "
+                "만드는 핵심 논리 오류가 있으면 true입니다. 단순한 설명 생략은 논리 오류가 아닙니다.\n"
+                "판정 정책:\n"
+                "- 자연어, 자유로운 형식, 부정확한 용어, 거친 기호와 코드 문법 오류를 허용하세요.\n"
+                "- 의도가 분명하면 입출력 문구, 초기화, 경계 처리 등 구현 세부 단계 생략을 허용하세요.\n"
+                "- 평가 기준의 모범 알고리즘과 다른 대안 풀이도 올바르면 인정하세요.\n"
+                "- 시간·공간 비효율만으로는 오답 처리하거나 논리 오류로 판단하지 마세요.\n"
+                "- 평가 기준은 점수와 개선 피드백을 위한 참고 자료일 뿐, 항목 누락 자체를 통과 "
+                "실패 사유로 삼지 마세요.\n"
+                "- answer_derivable=false는 내용이 너무 없거나 모호하여 요구 결과를 산출하는 "
+                "흐름을 판단할 수 없을 때만, "
+                "has_logical_error=true는 핵심 논리가 실제로 틀렸을 때만 사용하세요.\n"
+                "score와 missing_steps는 학습용 피드백이며 위 두 사실을 바꾸지 않습니다. "
+                "답변은 한국어로 짧고 구체적으로 작성하세요."
             ),
         },
         {
@@ -279,13 +309,16 @@ def _grade_pseudocode(
         content = result["choices"][0]["message"]["content"]
         evaluation = json.loads(content) if isinstance(content, str) else content
         if not isinstance(evaluation, dict) or set(evaluation) != {
-            "passed",
+            "answer_derivable",
+            "has_logical_error",
             "score",
             "feedback",
             "missing_steps",
         }:
             raise ValueError
-        if not isinstance(evaluation["passed"], bool):
+        if not isinstance(evaluation["answer_derivable"], bool):
+            raise ValueError
+        if not isinstance(evaluation["has_logical_error"], bool):
             raise ValueError
         if (
             not isinstance(evaluation["score"], int)
@@ -301,7 +334,15 @@ def _grade_pseudocode(
             raise ValueError
     except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
         raise ProviderError("의사코드 채점 결과를 해석하지 못했습니다.") from exc
-    return {"kind": "pseudocode", "status": "evaluated", **evaluation}
+    passed = evaluation["answer_derivable"] and not evaluation["has_logical_error"]
+    return {
+        "kind": "pseudocode",
+        "status": "evaluated",
+        "passed": passed,
+        "score": evaluation["score"],
+        "feedback": evaluation["feedback"],
+        "missing_steps": evaluation["missing_steps"],
+    }
 
 
 def grade_submission(

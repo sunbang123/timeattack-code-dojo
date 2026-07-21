@@ -14,6 +14,12 @@ from api.problem_service import (
     MODES,
     get_problem_response,
 )
+from api.solution_service import (
+    SolutionAccessError,
+    get_solution_payload,
+    issue_solution_access_token,
+    verify_solution_access_token,
+)
 from api.submission_service import ProviderError, SubmissionError, grade_submission
 
 
@@ -81,7 +87,12 @@ def problem() -> tuple[Response, int]:
             description=f"Unknown query parameter: {unknown_parameters[0]}",
         )
 
-    difficulty = required_query_value("difficulty", DIFFICULTIES)
+    difficulty_values = request.args.getlist("difficulty")
+    difficulty = (
+        required_query_value("difficulty", DIFFICULTIES)
+        if difficulty_values
+        else None
+    )
     mode = required_query_value("mode", MODES)
     language = required_query_value("language", LANGUAGES)
     problem_ids = request.args.getlist("problem_id")
@@ -93,7 +104,7 @@ def problem() -> tuple[Response, int]:
 
     payload = get_problem_response(difficulty, mode, language, problem_id)
     if payload is None:
-        abort(404, description="Problem not found for the requested difficulty")
+        abort(404, description="Problem not found for the requested selection")
     return jsonify(payload), 200
 
 
@@ -138,7 +149,74 @@ def submit() -> tuple[Response, int]:
         abort(400, description=str(error))
     except ProviderError as error:
         abort(502, description=str(error))
+    if result.get("passed") is False:
+        result = {
+            **result,
+            "solution_access_token": issue_solution_access_token(
+                payload["problem_id"],
+                payload["version"],
+                payload["mode"],
+                payload["language"],
+            ),
+        }
     return jsonify({"result": result}), 200
+
+
+@app.post("/solution")
+@app.post("/api/solution")
+def solution() -> tuple[Response, int]:
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        abort(400, description="Request body must be a JSON object")
+    allowed_fields = {
+        "problem_id",
+        "version",
+        "mode",
+        "language",
+        "solution_access_token",
+    }
+    unknown_fields = sorted(set(payload) - allowed_fields)
+    if unknown_fields:
+        abort(400, description=f"Unknown request field: {unknown_fields[0]}")
+    if set(payload) != allowed_fields:
+        missing = sorted(allowed_fields - set(payload))
+        abort(400, description=f"Missing request field: {missing[0]}")
+    if not isinstance(payload["problem_id"], str) or not re.fullmatch(
+        r"[a-z0-9]+(?:-[a-z0-9]+)*", payload["problem_id"]
+    ):
+        abort(400, description="problem_id is invalid")
+    if (
+        not isinstance(payload["version"], int)
+        or isinstance(payload["version"], bool)
+        or payload["version"] < 1
+    ):
+        abort(400, description="version must be a positive integer")
+    if payload["mode"] not in MODES:
+        abort(400, description="Invalid mode")
+    if payload["language"] not in LANGUAGES:
+        abort(400, description="Invalid language")
+    token = payload["solution_access_token"]
+    if not isinstance(token, str) or not token.strip():
+        abort(400, description="solution_access_token must be a non-empty string")
+
+    try:
+        verify_solution_access_token(
+            token,
+            problem_id=payload["problem_id"],
+            version=payload["version"],
+            mode=payload["mode"],
+            language=payload["language"],
+        )
+    except SolutionAccessError as error:
+        abort(403, description=str(error))
+
+    solution_payload = get_solution_payload(
+        payload["problem_id"],
+        payload["version"],
+        payload["mode"],
+        payload["language"],
+    )
+    return jsonify({"solution": solution_payload}), 200
 
 
 @app.errorhandler(Exception)

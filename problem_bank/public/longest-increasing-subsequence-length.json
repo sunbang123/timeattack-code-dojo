@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "id": "longest-increasing-subsequence-length",
+  "version": 1,
+  "title": "최장 증가 부분 수열 길이",
+  "difficulty": "hard",
+  "tags": ["binary-search", "dynamic-programming"],
+  "supported_languages": ["python", "cpp"],
+  "statement": {
+    "summary": "수열에서 가장 긴 엄격한 증가 부분 수열의 길이를 구합니다.",
+    "description": "주어진 수열에서 일부 원소를 순서를 유지한 채 골라 각 원소가 이전 원소보다 큰 부분 수열을 만들 때 가능한 최대 길이를 출력하세요.",
+    "input": "첫 줄에 수열의 길이 N, 둘째 줄에 N개의 정수가 주어집니다.",
+    "output": "가장 긴 증가하는 부분 수열의 길이를 출력합니다.",
+    "constraints": ["1 <= N <= 200,000", "각 원소의 절댓값은 1,000,000,000 이하입니다."]
+  },
+  "examples": [
+    {"input": "6\n10 20 10 30 20 50\n", "output": "4\n", "explanation": "10, 20, 30, 50을 선택하면 길이가 4입니다."},
+    {"input": "5\n5 4 3 2 1\n", "output": "1\n", "explanation": "감소 수열에서는 원소 하나만 선택할 수 있습니다."}
+  ],
+  "modes": {
+    "beginner": {
+      "time_limit_seconds": 300,
+      "answer_format": "pseudocode",
+      "prompt": "각 길이의 증가 부분 수열이 가질 수 있는 최소 마지막 값을 관리하고 이분 탐색으로 갱신하는 과정을 의사코드로 작성하세요."
+    },
+    "intermediate": {
+      "time_limit_seconds": 600,
+      "answer_format": "code",
+      "skeletons": {
+        "python": "from bisect import bisect_left\n\nn = int(input())\nvalues = list(map(int, input().split()))\ntails = []\n# TODO: tails를 이분 탐색으로 갱신하세요.\n",
+        "cpp": "#include <algorithm>\n#include <iostream>\n#include <vector>\nusing namespace std;\nint main() {\n    int n; cin >> n;\n    vector<long long> tails;\n    // TODO: 각 값을 입력받아 lower_bound로 tails를 갱신하세요.\n    return 0;\n}\n"
+      }
+    },
+    "expert": {
+      "time_limit_seconds": 900,
+      "answer_format": "code",
+      "starter_templates": {
+        "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",
+        "cpp": "#include <iostream>\nusing namespace std;\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    return 0;\n}\n"
+      }
+    }
+  }
+}

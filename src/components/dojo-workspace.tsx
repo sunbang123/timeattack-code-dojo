@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
 import { AnswerEditor } from "@/components/answer-editor";
@@ -8,6 +9,7 @@ import { DiscardDialog } from "@/components/discard-dialog";
 import { ProblemPanel } from "@/components/problem-panel";
 import { SelectionBar } from "@/components/selection-bar";
 import { SubmissionFeedback } from "@/components/submission-feedback";
+import { useSolutionAccess } from "@/hooks/use-solution-access";
 import {
   buildProblemUrl,
   fetchProblem,
@@ -17,9 +19,12 @@ import {
   type ProblemSelection,
   type SubmissionResult,
 } from "@/lib/problem-api";
+import {
+  buildSolutionPath,
+  writeSolutionAccess,
+} from "@/lib/solution-access";
 
 const defaultSelection: ProblemSelection = {
-  difficulty: "easy",
   mode: "intermediate",
   language: "python",
 };
@@ -107,6 +112,7 @@ function LoadedWorkspace({
   onSelectionChange: (selection: ProblemSelection) => void;
   selection: ProblemSelection;
 }) {
+  const router = useRouter();
   const startingAnswer = initialAnswer(data.problem);
   const [answer, setAnswer] = useState(startingAnswer);
   const [lastSubmittedAnswer, setLastSubmittedAnswer] = useState(startingAnswer);
@@ -114,6 +120,9 @@ function LoadedWorkspace({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const { access: solutionAccess } = useSolutionAccess(data.problem);
+  const wrongAttemptCount = solutionAccess?.wrongAttempts ?? 0;
+  const solutionAccessToken = solutionAccess?.token ?? null;
   const isDirty = answer !== lastSubmittedAnswer;
 
   useEffect(() => {
@@ -165,13 +174,28 @@ function LoadedWorkspace({
       const result = await submitAnswer(data.problem, answer);
       setSubmissionResult(result);
       setLastSubmittedAnswer(answer);
+      if (!result.passed && result.solution_access_token) {
+        writeSolutionAccess(data.problem, {
+          token: result.solution_access_token,
+          wrongAttempts: wrongAttemptCount + 1,
+        });
+      }
     } catch (error) {
       setSubmissionResult(null);
       setSubmissionError(error instanceof Error ? error.message : "답안을 제출하지 못했습니다.");
     } finally {
       setIsSubmitting(false);
     }
-  }, [answer, data.problem, isSubmitting]);
+  }, [answer, data.problem, isSubmitting, wrongAttemptCount]);
+
+  const handleViewSolution = useCallback(() => {
+    if (wrongAttemptCount < 1 || !solutionAccessToken) return;
+    writeSolutionAccess(data.problem, {
+      token: solutionAccessToken,
+      wrongAttempts: wrongAttemptCount,
+    });
+    router.push(buildSolutionPath(data.problem));
+  }, [data.problem, router, solutionAccessToken, wrongAttemptCount]);
 
   return (
     <>
@@ -194,8 +218,11 @@ function LoadedWorkspace({
           <EditorFooter
             isDirty={isDirty}
             isSubmitting={isSubmitting}
+            onViewSolution={handleViewSolution}
             onSubmit={() => void handleSubmit()}
+            solutionAvailable={wrongAttemptCount >= 1 && solutionAccessToken !== null}
             value={answer}
+            wrongAttemptCount={wrongAttemptCount}
           />
         </section>
       </div>
@@ -236,13 +263,19 @@ function EditorHeader({
 function EditorFooter({
   isDirty,
   isSubmitting,
+  onViewSolution,
   onSubmit,
+  solutionAvailable,
   value,
+  wrongAttemptCount,
 }: {
   isDirty: boolean;
   isSubmitting: boolean;
+  onViewSolution: () => void;
   onSubmit: () => void;
+  solutionAvailable: boolean;
   value: string;
+  wrongAttemptCount: number;
 }) {
   const lineCount = value === "" ? 1 : value.split("\n").length;
   const disabled = isSubmitting || !value.trim();
@@ -253,14 +286,25 @@ function EditorFooter({
         <span>{value.length} CHARS</span>
         <span>{isDirty ? "UNSAVED" : "READY"}</span>
       </div>
-      <button
-        className="rounded-lg bg-[#2cffad] px-4 py-2 text-xs font-semibold text-[#03140e] transition hover:bg-[#72ffcf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9affdc] disabled:cursor-not-allowed disabled:bg-white/[0.04] disabled:text-white/25"
-        disabled={disabled}
-        onClick={onSubmit}
-        type="button"
-      >
-        {isSubmitting ? "채점 중…" : "답안 제출"}
-      </button>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          className="rounded-lg border border-white/12 bg-white/[0.035] px-4 py-2 text-xs font-semibold text-white/65 transition hover:border-[#ff7a59]/45 hover:text-[#ffad96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7a59]/50 disabled:cursor-not-allowed disabled:border-white/6 disabled:bg-transparent disabled:text-white/20"
+          disabled={!solutionAvailable}
+          onClick={onViewSolution}
+          title={solutionAvailable ? "풀이과정 페이지로 이동" : "오답 제출 후 확인할 수 있습니다."}
+          type="button"
+        >
+          {solutionAvailable ? `정답보기 · 오답 ${wrongAttemptCount}회` : "정답보기 · 1회 오답 후"}
+        </button>
+        <button
+          className="rounded-lg bg-[#2cffad] px-4 py-2 text-xs font-semibold text-[#03140e] transition hover:bg-[#72ffcf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9affdc] disabled:cursor-not-allowed disabled:bg-white/[0.04] disabled:text-white/25"
+          disabled={disabled}
+          onClick={onSubmit}
+          type="button"
+        >
+          {isSubmitting ? "채점 중…" : "답안 제출"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -299,8 +343,8 @@ function WorkspaceEmpty() {
     <section className="grid min-h-[calc(100vh-188px)] place-items-center px-5 py-16 text-center">
       <div>
         <p className="font-mono text-xs tracking-[0.2em] text-white/30">EMPTY PROBLEM BANK</p>
-        <h1 className="mt-4 text-2xl font-semibold">선택한 난이도에 준비된 문제가 없습니다.</h1>
-        <p className="mt-2 text-sm text-white/40">다른 난이도를 선택해 주세요.</p>
+        <h1 className="mt-4 text-2xl font-semibold">문제은행에 준비된 문제가 없습니다.</h1>
+        <p className="mt-2 text-sm text-white/40">잠시 후 다시 시도해 주세요.</p>
       </div>
     </section>
   );

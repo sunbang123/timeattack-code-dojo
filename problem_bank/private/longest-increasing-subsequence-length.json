@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "problem_id": "longest-increasing-subsequence-length",
+  "version": 1,
+  "pseudocode_rubric": {
+    "pass_score": 70,
+    "criteria": [
+      {"id": "initialize_tails", "description": "부분 수열의 최소 마지막 값을 저장할 빈 배열을 준비한다.", "weight": 15},
+      {"id": "binary_search", "description": "각 값이 들어갈 첫 번째 이상 위치를 이분 탐색한다.", "weight": 35},
+      {"id": "update_tails", "description": "위치에 따라 값을 교체하거나 뒤에 추가한다.", "weight": 35},
+      {"id": "print_length", "description": "관리 배열의 최종 길이를 출력한다.", "weight": 15}
+    ]
+  },
+  "reference_solutions": {
+    "python": "from bisect import bisect_left\n\nn = int(input())\nvalues = list(map(int, input().split()))\ntails = []\nfor value in values:\n    index = bisect_left(tails, value)\n    if index == len(tails):\n        tails.append(value)\n    else:\n        tails[index] = value\nprint(len(tails))\n",
+    "cpp": "#include <algorithm>\n#include <iostream>\n#include <vector>\nusing namespace std;\nint main() { int n; cin >> n; vector<long long> tails; while (n--) { long long value; cin >> value; auto it = lower_bound(tails.begin(), tails.end(), value); if (it == tails.end()) tails.push_back(value); else *it = value; } cout << tails.size() << '\\n'; }\n"
+  },
+  "hidden_tests": [
+    {"name": "single_value", "input": "1\n42\n", "expected_output": "1\n"},
+    {"name": "all_equal", "input": "6\n2 2 2 2 2 2\n", "expected_output": "1\n"},
+    {"name": "mixed_values", "input": "8\n-3 -1 -2 0 2 1 3 4\n", "expected_output": "6\n"}
+  ]
+}
