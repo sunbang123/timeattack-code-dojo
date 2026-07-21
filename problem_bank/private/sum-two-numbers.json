@@ -1,23 +1,23 @@
 {
   "schema_version": "1.0.0",
   "problem_id": "sum-two-numbers",
-  "version": 1,
+  "version": 2,
   "pseudocode_rubric": {
     "pass_score": 70,
     "criteria": [
-      {"id": "read_input", "description": "두 정수를 입력받는다.", "weight": 20},
-      {"id": "compute_sum", "description": "두 정수를 더한다.", "weight": 40},
-      {"id": "print_result", "description": "계산 결과를 출력한다.", "weight": 30},
-      {"id": "clear_order", "description": "실행 순서가 명확하다.", "weight": 10}
+      {"id": "seed_prefix", "description": "빈 구간의 누적합 0을 한 번 등록한다.", "weight": 20},
+      {"id": "track_prefix", "description": "수열을 순회하며 누적합을 갱신한다.", "weight": 20},
+      {"id": "count_targets", "description": "현재 누적합-K의 이전 등장 횟수를 정답에 더한다.", "weight": 40},
+      {"id": "update_frequency", "description": "현재 누적합의 등장 횟수를 갱신하고 64비트 정답을 출력한다.", "weight": 20}
     ]
   },
   "reference_solutions": {
-    "python": "a, b = map(int, input().split())\nprint(a + b)\n",
-    "cpp": "#include <iostream>\nusing namespace std;\nint main() { long long a, b; cin >> a >> b; cout << a + b << '\\n'; }\n"
+    "python": "from collections import defaultdict\n\nn, target = map(int, input().split())\nvalues = list(map(int, input().split()))\nfrequency = defaultdict(int)\nfrequency[0] = 1\nprefix = answer = 0\nfor value in values:\n    prefix += value\n    answer += frequency[prefix - target]\n    frequency[prefix] += 1\nprint(answer)\n",
+    "cpp": "#include <iostream>\n#include <unordered_map>\nusing namespace std;\nint main() { int n; long long target; cin >> n >> target; unordered_map<long long, long long> frequency; frequency[0] = 1; long long prefix = 0, answer = 0; while (n--) { long long value; cin >> value; prefix += value; auto it = frequency.find(prefix - target); if (it != frequency.end()) answer += it->second; ++frequency[prefix]; } cout << answer << '\\n'; }\n"
   },
   "hidden_tests": [
-    {"name": "both_zero", "input": "0 0\n", "expected_output": "0\n"},
-    {"name": "opposite_limits", "input": "1000000000 -1000000000\n", "expected_output": "0\n"},
-    {"name": "negative_limit", "input": "-999999999 -1\n", "expected_output": "-1000000000\n"}
+    {"name": "negative_cancellation", "input": "5 0\n1 -1 1 -1 1\n", "expected_output": "6\n"},
+    {"name": "all_negative", "input": "3 -3\n-1 -1 -1\n", "expected_output": "1\n"},
+    {"name": "repeated_prefixes", "input": "6 5\n5 -5 5 -5 5 -5\n", "expected_output": "6\n"}
   ]
 }

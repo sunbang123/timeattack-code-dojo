@@ -7,11 +7,12 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "concurrently -k -n web,api -c cyan,magenta \"pnpm dev:web\" \"pnpm dev:api\"",
-    "dev:web": "next dev --turbopack",
+    "dev": "concurrently -k -n web,api -c cyan,magenta \"corepack pnpm dev:web\" \"corepack pnpm dev:api\"",
+    "dev:web": "node scripts/copy-monaco-assets.mjs && next dev --turbopack",
     "dev:api": "node scripts/run-api.mjs",
     "setup:python": "node scripts/setup-python.mjs",
-    "build": "next build",
+    "build": "node scripts/copy-monaco-assets.mjs && next build",
+    "postinstall": "node scripts/copy-monaco-assets.mjs",
     "lint": "eslint .",
     "test": "pnpm test:web && pnpm test:api && pnpm test:problems",
     "test:web": "tsc --noEmit",
@@ -22,9 +23,12 @@
     "check": "pnpm lint && pnpm test && pnpm build"
   },
   "dependencies": {
+    "@monaco-editor/react": "4.7.0",
+    "monaco-editor": "0.56.0",
     "next": "16.2.10",
     "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "react-dom": "19.2.7",
+    "swr": "2.4.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",

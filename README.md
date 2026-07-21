@@ -52,6 +52,10 @@ GET /api/problem?difficulty=easy&mode=intermediate&language=python
 
 특정 문제는 `problem_id` 선택 파라미터로 조회할 수 있습니다. 전체 계약과 오류 형식은 [`docs/step3-problem-api.md`](docs/step3-problem-api.md), 문제은행 검증 방법은 [`docs/step2-problem-bank.md`](docs/step2-problem-bank.md)를 참고하세요.
 
+## 학습 화면
+
+학습 화면은 난이도·문제·학습 모드·언어 전환, Monaco 코드 편집기, 미제출 답안 경고, 답안 제출과 채점 결과, 로딩·빈 상태·오류·재시도 UI를 제공합니다. 로컬에서도 제출할 수 있으며, Flask API가 코드 답안은 Judge0로, 의사코드 답안은 Hugging Face로 전송해 채점합니다. 의사코드 채점에는 `.env` 또는 `.env.local`의 `HF_TOKEN`이 필요합니다. 자세한 동작과 검증 방법은 [`docs/step4-learning-ui.md`](docs/step4-learning-ui.md)를 참고하세요.
+
 ## Vercel Preview
 
 저장소를 Vercel 프로젝트에 연결하면 Next.js 앱과 `api/index.py`의 Flask 앱이 별도 라우팅 설정 없이 함께 빌드됩니다. Preview 환경의 비밀값은 Vercel 프로젝트 설정에서 별도로 등록하고 저장소에는 넣지 않습니다.

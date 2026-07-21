@@ -1,38 +1,34 @@
 {
   "schema_version": "1.0.0",
   "id": "count-vowels",
-  "version": 1,
-  "title": "모음 개수 세기",
+  "version": 2,
+  "title": "모든 모음을 담은 최소 구간",
   "difficulty": "easy",
-  "tags": ["string", "counting"],
+  "tags": ["sliding-window", "string"],
   "supported_languages": ["python", "cpp"],
   "statement": {
-    "summary": "문자열에 포함된 영문 모음의 개수를 셉니다.",
-    "description": "한 줄의 문자열에서 a, e, i, o, u를 대소문자 구분 없이 세어 출력하세요.",
-    "input": "첫 줄에 영문자와 공백으로 이루어진 문자열이 주어집니다.",
-    "output": "영문 모음의 총개수를 출력합니다.",
-    "constraints": ["1 <= 문자열 길이 <= 1,000", "문자열은 영문자와 공백으로만 이루어집니다."]
+    "summary": "다섯 모음을 모두 포함하는 가장 짧은 연속 구간을 찾습니다.",
+    "description": "소문자 문자열에서 a, e, i, o, u를 각각 한 번 이상 포함하는 연속 부분 문자열의 최소 길이를 출력하세요. 그런 구간이 없으면 -1을 출력합니다.",
+    "input": "첫 줄에 알파벳 소문자로 이루어진 문자열 S가 주어집니다.",
+    "output": "조건을 만족하는 연속 부분 문자열의 최소 길이, 또는 -1을 출력합니다.",
+    "constraints": ["1 <= |S| <= 200,000", "S는 알파벳 소문자로만 이루어집니다."]
   },
   "examples": [
-    {"input": "Codex\n", "output": "2\n", "explanation": "o와 e가 모음입니다."},
-    {"input": "rhythm\n", "output": "0\n", "explanation": "영문 모음이 없습니다."}
+    {"input": "zzzaeioubc\n", "output": "5\n", "explanation": "aeiou가 길이 5로 모든 모음을 포함합니다."},
+    {"input": "rhythms\n", "output": "-1\n", "explanation": "다섯 모음을 모두 포함하는 구간이 없습니다."}
   ],
   "modes": {
-    "beginner": {
-      "time_limit_seconds": 300,
-      "answer_format": "pseudocode",
-      "prompt": "문자열의 각 문자를 확인하고 모음일 때 개수를 늘리는 과정을 의사코드로 작성하세요."
-    },
+    "beginner": {"time_limit_seconds": 480, "answer_format": "pseudocode", "prompt": "오른쪽 포인터로 문자를 추가하고 모든 모음이 모이면 왼쪽 포인터를 줄이는 슬라이딩 윈도우를 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 600,
+      "time_limit_seconds": 720,
       "answer_format": "code",
       "skeletons": {
-        "python": "text = input()\ncount = 0\n# TODO: 각 문자가 모음인지 확인하세요.\nprint(count)\n",
-        "cpp": "#include <iostream>\n#include <string>\nusing namespace std;\nint main() {\n    string text; getline(cin, text);\n    int count = 0;\n    // TODO: 각 문자가 모음인지 확인하세요.\n    cout << count << '\\n';\n}\n"
+        "python": "text = input().strip()\ncounts = {vowel: 0 for vowel in 'aeiou'}\nleft = 0\n# TODO: 모든 모음이 들어 있는 최소 슬라이딩 윈도우를 구하세요.\n",
+        "cpp": "#include <array>\n#include <iostream>\n#include <string>\nusing namespace std;\nint main() {\n    string text; cin >> text;\n    array<int, 26> counts{};\n    int left = 0;\n    // TODO: 모든 모음이 들어 있는 최소 슬라이딩 윈도우를 구하세요.\n    return 0;\n}\n"
       }
     },
     "expert": {
-      "time_limit_seconds": 900,
+      "time_limit_seconds": 960,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

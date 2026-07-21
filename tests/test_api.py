@@ -1,9 +1,12 @@
 import unittest
+from unittest.mock import patch
 
 from api.index import app
 from api.health import app as health_app
 from api.problem import app as problem_app
+from api.submit import app as submit_app
 from api.problem_service import load_manifest
+from api.submission_service import ProviderError
 
 
 class ApiTest(unittest.TestCase):
@@ -34,6 +37,58 @@ class ApiTest(unittest.TestCase):
     def test_vercel_problem_entrypoint_exports_the_same_app(self) -> None:
         self.assertIs(problem_app, app)
 
+    def test_vercel_submit_entrypoint_exports_the_same_app(self) -> None:
+        self.assertIs(submit_app, app)
+
+
+class SubmissionApiTest(unittest.TestCase):
+    def setUp(self) -> None:
+        app.config.update(TESTING=True)
+        self.client = app.test_client()
+        self.payload = {
+            "problem_id": "sum-two-numbers",
+            "version": 2,
+            "mode": "intermediate",
+            "language": "python",
+            "answer": "print(1)",
+        }
+
+    @patch("api.index.grade_submission")
+    def test_submit_returns_safe_grading_result(self, grade_submission_mock) -> None:
+        grade_submission_mock.return_value = {
+            "kind": "code",
+            "status": "accepted",
+            "passed": True,
+            "score": 100,
+            "feedback": "통과",
+            "passed_tests": 5,
+            "total_tests": 5,
+        }
+
+        response = self.client.post("/api/submit", json=self.payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json["result"]["passed"])
+        grade_submission_mock.assert_called_once_with(
+            "sum-two-numbers", 2, "intermediate", "python", "print(1)"
+        )
+
+    def test_submit_rejects_empty_and_unknown_fields(self) -> None:
+        empty = self.client.post("/api/submit", json={**self.payload, "answer": " "})
+        unknown = self.client.post(
+            "/api/submit", json={**self.payload, "debug": True}
+        )
+
+        self.assertEqual(empty.status_code, 400)
+        self.assertEqual(unknown.status_code, 400)
+
+    @patch("api.index.grade_submission", side_effect=ProviderError("provider down"))
+    def test_submit_maps_provider_failure_to_bad_gateway(self, _grade_submission_mock) -> None:
+        response = self.client.post("/api/submit", json=self.payload)
+
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json["error"]["message"], "provider down")
+
 
 class ProblemApiTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -58,7 +113,7 @@ class ProblemApiTest(unittest.TestCase):
                     problem = response.json["problem"]
                     self.assertEqual(problem["mode"], mode)
                     self.assertEqual(problem["language"], language)
-                    self.assertEqual(response.json["bank_version"], 1)
+                    self.assertEqual(response.json["bank_version"], 2)
                     if mode == "beginner":
                         self.assertEqual(problem["answer_format"], "pseudocode")
                         self.assertIn("prompt", problem)
@@ -103,6 +158,10 @@ class ProblemApiTest(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json["problem"]["id"], "count-vowels")
+        self.assertEqual(
+            [item["id"] for item in response.json["available_problems"]],
+            ["sum-two-numbers", "count-vowels"],
+        )
 
     def test_response_never_contains_private_or_unrequested_mode_fields(self) -> None:
         forbidden_keys = {

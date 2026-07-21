@@ -100,7 +100,7 @@ def load_and_validate_bank() -> list[dict[str, Any]]:
     manifest = read_json(BANK / "manifest.json")
     entries = manifest.get("problems", [])
     require(manifest.get("schema_version") == "1.0.0", "Invalid manifest schema_version")
-    require(manifest.get("bank_version") == 1, "Invalid bank_version")
+    require(manifest.get("bank_version") == 2, "Invalid bank_version")
     require(len(entries) == 6, "The MVP bank must contain exactly six problems")
     ids = [entry.get("id") for entry in entries]
     require(len(set(ids)) == len(ids), "Problem ids must be unique")

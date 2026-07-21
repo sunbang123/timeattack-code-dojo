@@ -10,3 +10,4 @@ node_modules/
 coverage/
 *.tsbuildinfo
 artifacts/*.log
+public/monaco/

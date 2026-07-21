@@ -1,38 +1,34 @@
 {
   "schema_version": "1.0.0",
   "id": "sum-two-numbers",
-  "version": 1,
-  "title": "두 수의 합",
+  "version": 2,
+  "title": "목표 합 부분 배열 개수",
   "difficulty": "easy",
-  "tags": ["implementation", "arithmetic"],
+  "tags": ["prefix-sum", "hash-map"],
   "supported_languages": ["python", "cpp"],
   "statement": {
-    "summary": "두 정수의 합을 출력합니다.",
-    "description": "공백으로 구분된 두 정수 A와 B를 입력받아 A+B를 출력하세요.",
-    "input": "첫 줄에 두 정수 A와 B가 주어집니다.",
-    "output": "A와 B의 합을 출력합니다.",
-    "constraints": ["-1,000,000,000 <= A, B <= 1,000,000,000"]
+    "summary": "합이 K인 연속 부분 배열의 개수를 구합니다.",
+    "description": "정수 수열에서 원소를 하나 이상 연속으로 선택했을 때 합이 K가 되는 구간의 개수를 출력하세요. 음수가 포함되므로 투 포인터만으로는 풀 수 없습니다.",
+    "input": "첫 줄에 수열의 길이 N과 목표 합 K, 둘째 줄에 N개의 정수가 주어집니다.",
+    "output": "합이 K인 연속 부분 배열의 개수를 출력합니다.",
+    "constraints": ["1 <= N <= 200,000", "각 원소와 K의 절댓값은 1,000,000,000 이하입니다.", "정답은 64비트 정수 범위에 들어갑니다."]
   },
   "examples": [
-    {"input": "2 3\n", "output": "5\n", "explanation": "2와 3의 합은 5입니다."},
-    {"input": "-4 10\n", "output": "6\n", "explanation": "-4와 10의 합은 6입니다."}
+    {"input": "5 3\n1 2 1 2 1\n", "output": "4\n", "explanation": "합이 3인 구간은 [1,2], [2,1], [1,2], [2,1] 네 개입니다."},
+    {"input": "4 0\n0 0 0 0\n", "output": "10\n", "explanation": "모든 연속 구간의 합이 0입니다."}
   ],
   "modes": {
-    "beginner": {
-      "time_limit_seconds": 300,
-      "answer_format": "pseudocode",
-      "prompt": "입력, 덧셈, 출력의 순서가 드러나도록 의사코드를 작성하세요."
-    },
+    "beginner": {"time_limit_seconds": 480, "answer_format": "pseudocode", "prompt": "현재 누적합에서 K를 뺀 값이 이전에 몇 번 등장했는지 해시 맵으로 찾는 과정을 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 600,
+      "time_limit_seconds": 720,
       "answer_format": "code",
       "skeletons": {
-        "python": "a, b = map(int, input().split())\n# TODO: 두 수의 합을 출력하세요.\n",
-        "cpp": "#include <iostream>\nusing namespace std;\nint main() {\n    long long a, b;\n    cin >> a >> b;\n    // TODO: 두 수의 합을 출력하세요.\n    return 0;\n}\n"
+        "python": "from collections import defaultdict\n\nn, target = map(int, input().split())\nvalues = list(map(int, input().split()))\nfrequency = defaultdict(int)\nfrequency[0] = 1\n# TODO: 누적합의 등장 횟수를 이용해 정답을 구하세요.\n",
+        "cpp": "#include <iostream>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nint main() {\n    int n; long long target; cin >> n >> target;\n    vector<long long> values(n);\n    for (auto &value : values) cin >> value;\n    unordered_map<long long, long long> frequency;\n    frequency[0] = 1;\n    // TODO: 누적합의 등장 횟수를 이용해 정답을 구하세요.\n    return 0;\n}\n"
       }
     },
     "expert": {
-      "time_limit_seconds": 900,
+      "time_limit_seconds": 960,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

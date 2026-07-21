@@ -6,8 +6,8 @@
 
 ## 디렉터리 경계
 
-- `problem_bank/public/`: 문제 설명, 공개 예시, 중짜 스켈레톤, 타짜 최소 템플릿. API가 클라이언트에 반환할 수 있는 데이터다.
-- `problem_bank/private/`: 초짜 평가 루브릭, Python/C++ 기준 정답, 비공개 테스트. 서버에서만 읽는다.
+- `problem_bank/public/`: 문제 설명, 공개 예시, 중수 스켈레톤, 고수 최소 템플릿. API가 클라이언트에 반환할 수 있는 데이터다.
+- `problem_bank/private/`: 초보 평가 루브릭, Python/C++ 기준 정답, 비공개 테스트. 서버에서만 읽는다.
 - `problem_bank/schemas/`: 공개/비공개 JSON 문서의 계약이다.
 - `problem_bank/manifest.json`: 문제 ID, 난이도, 버전을 한곳에서 관리한다.
 

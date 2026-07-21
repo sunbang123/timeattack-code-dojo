@@ -1,38 +1,34 @@
 {
   "schema_version": "1.0.0",
   "id": "longest-increasing-subsequence",
-  "version": 1,
-  "title": "가장 긴 증가하는 부분 수열",
+  "version": 2,
+  "title": "최장 증가 부분 수열의 개수",
   "difficulty": "hard",
-  "tags": ["binary-search", "dynamic-programming"],
+  "tags": ["fenwick-tree", "coordinate-compression", "dynamic-programming"],
   "supported_languages": ["python", "cpp"],
   "statement": {
-    "summary": "수열에서 가장 긴 엄격한 증가 부분 수열의 길이를 구합니다.",
-    "description": "주어진 수열에서 일부 원소를 순서를 유지한 채 골라 각 원소가 이전 원소보다 큰 부분 수열을 만들 때 가능한 최대 길이를 출력하세요.",
+    "summary": "최장 증가 부분 수열의 길이와 서로 다른 인덱스 선택 방법 수를 구합니다.",
+    "description": "수열에서 인덱스 순서를 유지하며 값을 엄격하게 증가하도록 고릅니다. 가능한 최대 길이 L과, 길이가 L인 부분 수열을 만드는 인덱스 선택 방법의 수를 1,000,000,007로 나눈 나머지를 출력하세요.",
     "input": "첫 줄에 수열의 길이 N, 둘째 줄에 N개의 정수가 주어집니다.",
-    "output": "가장 긴 증가하는 부분 수열의 길이를 출력합니다.",
-    "constraints": ["1 <= N <= 200,000", "각 원소의 절댓값은 1,000,000,000 이하입니다."]
+    "output": "최장 증가 부분 수열의 길이 L과 그 개수를 공백으로 구분해 출력합니다.",
+    "constraints": ["1 <= N <= 200,000", "각 원소의 절댓값은 1,000,000,000 이하입니다.", "값이 같으면 증가한 것으로 보지 않습니다."]
   },
   "examples": [
-    {"input": "6\n10 20 10 30 20 50\n", "output": "4\n", "explanation": "10, 20, 30, 50을 선택하면 길이가 4입니다."},
-    {"input": "5\n5 4 3 2 1\n", "output": "1\n", "explanation": "감소 수열에서는 원소 하나만 선택할 수 있습니다."}
+    {"input": "5\n1 3 5 4 7\n", "output": "4 2\n", "explanation": "1-3-5-7과 1-3-4-7 두 가지가 있습니다."},
+    {"input": "5\n2 2 2 2 2\n", "output": "1 5\n", "explanation": "각 인덱스의 원소 하나를 고르는 다섯 방법이 있습니다."}
   ],
   "modes": {
-    "beginner": {
-      "time_limit_seconds": 300,
-      "answer_format": "pseudocode",
-      "prompt": "각 길이의 증가 부분 수열이 가질 수 있는 최소 마지막 값을 관리하고 이분 탐색으로 갱신하는 과정을 의사코드로 작성하세요."
-    },
+    "beginner": {"time_limit_seconds": 720, "answer_format": "pseudocode", "prompt": "값을 좌표 압축하고 Fenwick Tree의 각 노드에 (최대 길이, 방법 수)를 병합하는 과정을 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 600,
+      "time_limit_seconds": 960,
       "answer_format": "code",
       "skeletons": {
-        "python": "from bisect import bisect_left\n\nn = int(input())\nvalues = list(map(int, input().split()))\ntails = []\n# TODO: tails를 이분 탐색으로 갱신하세요.\n",
-        "cpp": "#include <algorithm>\n#include <iostream>\n#include <vector>\nusing namespace std;\nint main() {\n    int n; cin >> n;\n    vector<long long> tails;\n    // TODO: 각 값을 입력받아 lower_bound로 tails를 갱신하세요.\n    return 0;\n}\n"
+        "python": "MOD = 1_000_000_007\nn = int(input())\nvalues = list(map(int, input().split()))\ncoordinates = {value: index + 1 for index, value in enumerate(sorted(set(values)))}\n# TODO: Fenwick Tree에 (길이, 개수)를 저장하고 병합하세요.\n",
+        "cpp": "#include <algorithm>\n#include <iostream>\n#include <vector>\nusing namespace std;\nconst long long MOD = 1000000007;\nint main() {\n    int n; cin >> n;\n    vector<long long> values(n), compressed;\n    for (auto &value : values) cin >> value;\n    compressed = values;\n    sort(compressed.begin(), compressed.end());\n    compressed.erase(unique(compressed.begin(), compressed.end()), compressed.end());\n    // TODO: Fenwick Tree에 (길이, 개수)를 저장하고 병합하세요.\n    return 0;\n}\n"
       }
     },
     "expert": {
-      "time_limit_seconds": 900,
+      "time_limit_seconds": 1200,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

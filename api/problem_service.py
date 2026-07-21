@@ -61,6 +61,22 @@ def find_problem_entry(
     return None
 
 
+def list_problem_summaries(difficulty: str) -> list[dict[str, Any]]:
+    summaries = []
+    for entry in load_manifest()["problems"]:
+        if entry.get("difficulty") != difficulty:
+            continue
+        public = load_public_problem(entry["id"])
+        summaries.append(
+            {
+                "id": public["id"],
+                "title": public["title"],
+                "difficulty": public["difficulty"],
+            }
+        )
+    return summaries
+
+
 def serialize_problem(
     entry: dict[str, Any], mode: str, language: str
 ) -> dict[str, Any]:
@@ -110,6 +126,7 @@ def get_problem_response(
         return None
     manifest = load_manifest()
     return {
+        "available_problems": list_problem_summaries(difficulty),
         "bank_version": manifest["bank_version"],
         "problem": serialize_problem(entry, mode, language),
     }

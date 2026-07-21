@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import uuid
 from typing import Any
 
@@ -13,6 +14,7 @@ from api.problem_service import (
     MODES,
     get_problem_response,
 )
+from api.submission_service import ProviderError, SubmissionError, grade_submission
 
 
 app = Flask(__name__)
@@ -93,6 +95,50 @@ def problem() -> tuple[Response, int]:
     if payload is None:
         abort(404, description="Problem not found for the requested difficulty")
     return jsonify(payload), 200
+
+
+@app.post("/submit")
+@app.post("/api/submit")
+def submit() -> tuple[Response, int]:
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        abort(400, description="Request body must be a JSON object")
+    allowed_fields = {"problem_id", "version", "mode", "language", "answer"}
+    unknown_fields = sorted(set(payload) - allowed_fields)
+    if unknown_fields:
+        abort(400, description=f"Unknown request field: {unknown_fields[0]}")
+    if set(payload) != allowed_fields:
+        missing = sorted(allowed_fields - set(payload))
+        abort(400, description=f"Missing request field: {missing[0]}")
+    if not isinstance(payload["problem_id"], str) or not re.fullmatch(
+        r"[a-z0-9]+(?:-[a-z0-9]+)*", payload["problem_id"]
+    ):
+        abort(400, description="problem_id is invalid")
+    if (
+        not isinstance(payload["version"], int)
+        or isinstance(payload["version"], bool)
+        or payload["version"] < 1
+    ):
+        abort(400, description="version must be a positive integer")
+    if payload["mode"] not in MODES:
+        abort(400, description="Invalid mode")
+    if payload["language"] not in LANGUAGES:
+        abort(400, description="Invalid language")
+    if not isinstance(payload["answer"], str) or not payload["answer"].strip():
+        abort(400, description="answer must be a non-empty string")
+    try:
+        result = grade_submission(
+            payload["problem_id"],
+            payload["version"],
+            payload["mode"],
+            payload["language"],
+            payload["answer"],
+        )
+    except SubmissionError as error:
+        abort(400, description=str(error))
+    except ProviderError as error:
+        abort(502, description=str(error))
+    return jsonify({"result": result}), 200
 
 
 @app.errorhandler(Exception)

@@ -1,23 +1,23 @@
 {
   "schema_version": "1.0.0",
   "problem_id": "balanced-brackets",
-  "version": 1,
+  "version": 2,
   "pseudocode_rubric": {
     "pass_score": 70,
     "criteria": [
-      {"id": "initialize_stack", "description": "빈 스택을 준비한다.", "weight": 15},
-      {"id": "push_opening", "description": "여는 괄호를 스택에 넣는다.", "weight": 20},
-      {"id": "match_closing", "description": "닫는 괄호를 스택의 top과 종류까지 비교한다.", "weight": 45},
-      {"id": "final_check", "description": "불일치 여부와 마지막 빈 스택 여부로 답을 정한다.", "weight": 20}
+      {"id": "reject_odd", "description": "문자열 길이가 홀수이면 불가능하다고 판정한다.", "weight": 15},
+      {"id": "update_range", "description": "각 문자에 따라 가능한 열린 괄호 수의 최소·최대 범위를 갱신한다.", "weight": 40},
+      {"id": "reject_prefix", "description": "최댓값이 음수가 되는 접두사는 즉시 불가능하다고 판정한다.", "weight": 25},
+      {"id": "final_zero", "description": "끝에서 열린 괄호 수 0이 가능한지 확인한다.", "weight": 20}
     ]
   },
   "reference_solutions": {
-    "python": "s = input().strip()\nstack = []\npairs = {')': '(', ']': '[', '}': '{'}\nvalid = True\nfor ch in s:\n    if ch in '([{':\n        stack.append(ch)\n    elif not stack or stack.pop() != pairs[ch]:\n        valid = False\n        break\nprint('YES' if valid and not stack else 'NO')\n",
-    "cpp": "#include <iostream>\n#include <stack>\n#include <string>\nusing namespace std;\nint main() { string s; cin >> s; stack<char> st; bool ok = true; for (char c : s) { if (c == '(' || c == '[' || c == '{') st.push(c); else { char expected = c == ')' ? '(' : c == ']' ? '[' : '{'; if (st.empty() || st.top() != expected) { ok = false; break; } st.pop(); } } cout << (ok && st.empty() ? \"YES\" : \"NO\") << '\\n'; }\n"
+    "python": "s = input().strip()\nif len(s) % 2:\n    print('NO')\nelse:\n    low = high = 0\n    possible = True\n    for char in s:\n        if char == '(':\n            low += 1\n            high += 1\n        elif char == ')':\n            low -= 1\n            high -= 1\n        else:\n            low -= 1\n            high += 1\n        if high < 0:\n            possible = False\n            break\n        low = max(low, 0)\n    print('YES' if possible and low == 0 else 'NO')\n",
+    "cpp": "#include <algorithm>\n#include <iostream>\n#include <string>\nusing namespace std;\nint main() { string s; cin >> s; if (s.size() % 2) { cout << \"NO\\n\"; return 0; } int low = 0, high = 0; for (char c : s) { if (c == '(') ++low, ++high; else if (c == ')') --low, --high; else --low, ++high; if (high < 0) { cout << \"NO\\n\"; return 0; } low = max(low, 0); } cout << (low == 0 ? \"YES\" : \"NO\") << '\\n'; }\n"
   },
   "hidden_tests": [
-    {"name": "nested_valid", "input": "{[()]}\n", "expected_output": "YES\n"},
-    {"name": "unclosed", "input": "(((\n", "expected_output": "NO\n"},
-    {"name": "closing_first", "input": "}{\n", "expected_output": "NO\n"}
+    {"name": "two_wildcards", "input": "??\n", "expected_output": "YES\n"},
+    {"name": "insufficient_closing", "input": "(((?\n", "expected_output": "NO\n"},
+    {"name": "nested_choice", "input": "(()??)\n", "expected_output": "YES\n"}
   ]
 }

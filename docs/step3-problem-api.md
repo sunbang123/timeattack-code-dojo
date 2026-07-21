@@ -18,22 +18,26 @@ GET /api/problem?difficulty=easy&mode=intermediate&language=python
 
 ```json
 {
-  "bank_version": 1,
+  "available_problems": [
+    {"id": "sum-two-numbers", "title": "목표 합 부분 배열 개수", "difficulty": "easy"},
+    {"id": "count-vowels", "title": "모든 모음을 담은 최소 구간", "difficulty": "easy"}
+  ],
+  "bank_version": 2,
   "problem": {
     "id": "sum-two-numbers",
-    "version": 1,
-    "title": "두 수의 합",
+    "version": 2,
+    "title": "목표 합 부분 배열 개수",
     "difficulty": "easy",
     "mode": "intermediate",
     "language": "python",
-    "time_limit_seconds": 600,
+    "time_limit_seconds": 720,
     "answer_format": "code",
     "starter_code": "..."
   }
 }
 ```
 
-문제 설명, 제약, 공개 예시와 태그도 함께 반환한다. 모드별 필드는 다음처럼 제한한다.
+`available_problems`는 현재 난이도에서 선택 가능한 공개 문제 요약이다. 문제 설명, 제약, 공개 예시와 태그도 함께 반환한다. 모드별 필드는 다음처럼 제한한다.
 
 - `beginner`: `prompt`만 추가
 - `intermediate`: 요청 언어의 TODO 스켈레톤을 `starter_code`로 추가

@@ -1,23 +1,23 @@
 {
   "schema_version": "1.0.0",
   "problem_id": "longest-increasing-subsequence",
-  "version": 1,
+  "version": 2,
   "pseudocode_rubric": {
     "pass_score": 70,
     "criteria": [
-      {"id": "initialize_tails", "description": "부분 수열의 최소 마지막 값을 저장할 빈 배열을 준비한다.", "weight": 15},
-      {"id": "binary_search", "description": "각 값이 들어갈 첫 번째 이상 위치를 이분 탐색한다.", "weight": 35},
-      {"id": "update_tails", "description": "위치에 따라 값을 교체하거나 뒤에 추가한다.", "weight": 35},
-      {"id": "print_length", "description": "관리 배열의 최종 길이를 출력한다.", "weight": 15}
+      {"id": "compress_values", "description": "값을 정렬·중복 제거해 좌표 압축한다.", "weight": 20},
+      {"id": "query_smaller", "description": "현재 값보다 작은 좌표 구간의 최대 길이와 방법 수를 질의한다.", "weight": 30},
+      {"id": "merge_pairs", "description": "길이가 크면 교체하고 같으면 방법 수를 더하는 병합 규칙을 사용한다.", "weight": 35},
+      {"id": "modulo_result", "description": "빈 이전 수열은 한 가지로 처리하고 개수를 모듈러로 출력한다.", "weight": 15}
     ]
   },
   "reference_solutions": {
-    "python": "from bisect import bisect_left\n\nn = int(input())\nvalues = list(map(int, input().split()))\ntails = []\nfor value in values:\n    index = bisect_left(tails, value)\n    if index == len(tails):\n        tails.append(value)\n    else:\n        tails[index] = value\nprint(len(tails))\n",
-    "cpp": "#include <algorithm>\n#include <iostream>\n#include <vector>\nusing namespace std;\nint main() { int n; cin >> n; vector<long long> tails; while (n--) { long long value; cin >> value; auto it = lower_bound(tails.begin(), tails.end(), value); if (it == tails.end()) tails.push_back(value); else *it = value; } cout << tails.size() << '\\n'; }\n"
+    "python": "MOD = 1_000_000_007\nn = int(input())\nvalues = list(map(int, input().split()))\ncoordinates = {value: index + 1 for index, value in enumerate(sorted(set(values)))}\ntree = [(0, 0)] * (len(coordinates) + 1)\n\ndef merge(left, right):\n    if left[0] != right[0]:\n        return left if left[0] > right[0] else right\n    return (left[0], (left[1] + right[1]) % MOD)\n\ndef query(index):\n    result = (0, 0)\n    while index:\n        result = merge(result, tree[index])\n        index -= index & -index\n    return result\n\ndef update(index, value):\n    while index < len(tree):\n        tree[index] = merge(tree[index], value)\n        index += index & -index\n\nfor value in values:\n    index = coordinates[value]\n    length, count = query(index - 1)\n    update(index, (length + 1, count if length else 1))\nprint(*query(len(coordinates)))\n",
+    "cpp": "#include <algorithm>\n#include <iostream>\n#include <utility>\n#include <vector>\nusing namespace std;\nconst long long MOD = 1000000007;\npair<int, long long> mergeNode(pair<int, long long> a, pair<int, long long> b) { if (a.first != b.first) return a.first > b.first ? a : b; return {a.first, (a.second + b.second) % MOD}; }\nint main() { int n; cin >> n; vector<long long> values(n), coordinates; for (auto &value : values) cin >> value; coordinates = values; sort(coordinates.begin(), coordinates.end()); coordinates.erase(unique(coordinates.begin(), coordinates.end()), coordinates.end()); vector<pair<int, long long>> tree(coordinates.size() + 1, {0, 0}); auto query = [&](int index) { pair<int, long long> result{0, 0}; while (index) { result = mergeNode(result, tree[index]); index -= index & -index; } return result; }; for (long long value : values) { int index = lower_bound(coordinates.begin(), coordinates.end(), value) - coordinates.begin() + 1; auto previous = query(index - 1); pair<int, long long> current{previous.first + 1, previous.first ? previous.second : 1}; for (int position = index; position < (int)tree.size(); position += position & -position) tree[position] = mergeNode(tree[position], current); } auto answer = query(coordinates.size()); cout << answer.first << ' ' << answer.second << '\\n'; }\n"
   },
   "hidden_tests": [
-    {"name": "single_value", "input": "1\n42\n", "expected_output": "1\n"},
-    {"name": "all_equal", "input": "6\n2 2 2 2 2 2\n", "expected_output": "1\n"},
-    {"name": "mixed_values", "input": "8\n-3 -1 -2 0 2 1 3 4\n", "expected_output": "6\n"}
+    {"name": "single_value", "input": "1\n42\n", "expected_output": "1 1\n"},
+    {"name": "duplicate_paths", "input": "4\n1 2 1 2\n", "expected_output": "2 3\n"},
+    {"name": "duplicate_middle", "input": "5\n3 1 2 2 4\n", "expected_output": "3 2\n"}
   ]
 }

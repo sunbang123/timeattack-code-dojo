@@ -1,38 +1,34 @@
 {
   "schema_version": "1.0.0",
   "id": "rotate-array",
-  "version": 1,
-  "title": "배열 오른쪽 회전",
+  "version": 2,
+  "title": "회전 배열 최대 일치",
   "difficulty": "medium",
-  "tags": ["array", "modulo"],
+  "tags": ["permutation", "counting"],
   "supported_languages": ["python", "cpp"],
   "statement": {
-    "summary": "배열을 오른쪽으로 K칸 회전합니다.",
-    "description": "길이 N인 배열을 오른쪽으로 K칸 회전한 결과를 출력하세요. 오른쪽 끝에서 밀려난 원소는 배열의 맨 앞으로 이동합니다.",
-    "input": "첫 줄에 N과 K, 둘째 줄에 N개의 정수가 주어집니다.",
-    "output": "회전한 배열의 원소를 공백으로 구분해 출력합니다.",
-    "constraints": ["1 <= N <= 100,000", "0 <= K <= 1,000,000,000", "각 원소의 절댓값은 1,000,000,000 이하입니다."]
+    "summary": "한 순열을 회전해 다른 순열과 같은 위치의 값이 가장 많아지게 합니다.",
+    "description": "1부터 N까지의 수가 한 번씩 등장하는 두 순열 A와 B가 주어집니다. A를 오른쪽으로 K칸 회전했을 때 A와 B의 같은 위치에 놓인 값의 최대 개수와, 이를 만드는 가장 작은 K를 출력하세요.",
+    "input": "첫 줄에 N, 둘째 줄에 순열 A, 셋째 줄에 순열 B가 주어집니다.",
+    "output": "최대 일치 개수와 그때의 가장 작은 회전 칸 수 K를 공백으로 구분해 출력합니다.",
+    "constraints": ["1 <= N <= 200,000", "A와 B는 각각 1..N의 순열입니다.", "0 <= K < N"]
   },
   "examples": [
-    {"input": "5 2\n1 2 3 4 5\n", "output": "4 5 1 2 3\n", "explanation": "오른쪽 끝의 4, 5가 순서를 유지한 채 앞으로 이동합니다."},
-    {"input": "3 0\n7 8 9\n", "output": "7 8 9\n", "explanation": "0칸 회전하면 배열이 바뀌지 않습니다."}
+    {"input": "5\n1 2 3 4 5\n4 5 1 2 3\n", "output": "5 2\n", "explanation": "A를 오른쪽으로 2칸 회전하면 B와 완전히 같아집니다."},
+    {"input": "4\n1 2 3 4\n1 3 2 4\n", "output": "2 0\n", "explanation": "회전하지 않을 때 값 1과 4가 같은 위치에 있습니다."}
   ],
   "modes": {
-    "beginner": {
-      "time_limit_seconds": 300,
-      "answer_format": "pseudocode",
-      "prompt": "K가 N보다 클 수 있음을 고려해 실제 이동량을 구하고 배열을 나누어 합치는 과정을 의사코드로 작성하세요."
-    },
+    "beginner": {"time_limit_seconds": 600, "answer_format": "pseudocode", "prompt": "각 값의 A 위치와 B 위치 차이로 필요한 오른쪽 회전량을 구하고 빈도를 세는 과정을 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 600,
+      "time_limit_seconds": 840,
       "answer_format": "code",
       "skeletons": {
-        "python": "n, k = map(int, input().split())\nvalues = list(map(int, input().split()))\n# TODO: 배열을 오른쪽으로 회전하세요.\n",
-        "cpp": "#include <iostream>\n#include <vector>\nusing namespace std;\nint main() {\n    int n; long long k; cin >> n >> k;\n    vector<long long> values(n);\n    for (auto &value : values) cin >> value;\n    // TODO: 배열을 오른쪽으로 회전하세요.\n    return 0;\n}\n"
+        "python": "n = int(input())\nfirst = list(map(int, input().split()))\nsecond = list(map(int, input().split()))\npositions = [0] * (n + 1)\n# TODO: 각 값이 일치하는 데 필요한 회전량의 빈도를 세세요.\n",
+        "cpp": "#include <iostream>\n#include <vector>\nusing namespace std;\nint main() {\n    int n; cin >> n;\n    vector<int> first(n), position(n + 1), frequency(n);\n    for (int &value : first) cin >> value;\n    // TODO: 두 번째 순열의 위치와 비교해 회전량 빈도를 세세요.\n    return 0;\n}\n"
       }
     },
     "expert": {
-      "time_limit_seconds": 900,
+      "time_limit_seconds": 1080,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",
