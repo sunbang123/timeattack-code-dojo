@@ -246,8 +246,15 @@ def solution() -> tuple[Response, int]:
 
 @app.errorhandler(Exception)
 def handle_error(error: Exception) -> tuple[Response, int]:
-    status_code = error.code if isinstance(error, HTTPException) else 500
-    message = error.description if isinstance(error, HTTPException) else "Internal server error"
+    is_http_error = isinstance(error, HTTPException)
+    if not is_http_error:
+        app.logger.error(
+            "Unhandled exception for request %s",
+            request.environ.get("request_id"),
+            exc_info=(type(error), error, error.__traceback__),
+        )
+    status_code = error.code if is_http_error else 500
+    message = error.description if is_http_error else "Internal server error"
     payload: dict[str, Any] = {
         "error": {
             "code": status_code,
