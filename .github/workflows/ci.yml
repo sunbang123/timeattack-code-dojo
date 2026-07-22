@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm setup:python
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test API
+        run: pnpm test:api
+
+      - name: Validate Python and C++ problem references
+        run: pnpm test:problems:cpp
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Type-check web application
+        run: pnpm test:web

@@ -32,6 +32,7 @@ type SelectionBarProps = {
   currentProblemId: string;
   disabled?: boolean;
   selection: ProblemSelection;
+  onAdd: () => void;
   onChange: (selection: ProblemSelection) => void;
 };
 
@@ -40,6 +41,7 @@ export function SelectionBar({
   currentProblemId,
   disabled = false,
   selection,
+  onAdd,
   onChange,
 }: SelectionBarProps) {
   return (
@@ -47,26 +49,39 @@ export function SelectionBar({
       aria-label="문제 설정"
       className="grid gap-5 border-b border-white/10 bg-[#0a0f13]/95 px-4 py-4 backdrop-blur md:grid-cols-[minmax(0,1.35fr)_1.35fr_0.75fr] md:px-6"
     >
-      <label className="block">
-        <span className="mb-2 flex items-center justify-between font-mono text-[10px] tracking-[0.18em] text-white/35">
+      <div>
+        <div className="mb-2 flex items-center justify-between font-mono text-[10px] tracking-[0.18em] text-white/35">
           <span>ALL PROBLEMS</span>
-          <span>{availableProblems.length}개</span>
-        </span>
-        <select
-          className="h-[58px] w-full rounded-lg border border-white/10 bg-[#10171c] px-3 text-sm text-white/80 outline-none transition focus:border-[#2cffad]/50 focus:ring-2 focus:ring-[#2cffad]/20 disabled:opacity-50"
-          disabled={disabled || availableProblems.length === 0}
-          onChange={(event) =>
-            onChange({ ...selection, problemId: event.target.value })
-          }
-          value={currentProblemId}
-        >
-          {availableProblems.map((problem) => (
-            <option key={problem.id} value={problem.id}>
-              [{difficultyLabels[problem.difficulty]}] {problem.title}
-            </option>
-          ))}
-        </select>
-      </label>
+          <span className="flex items-center gap-3">
+            <span>{availableProblems.length}개</span>
+            <button
+              className="rounded border border-[#2cffad]/25 bg-[#2cffad]/7 px-2 py-1 text-[9px] tracking-[0.1em] text-[#7dffcc] transition hover:border-[#2cffad]/50 hover:bg-[#2cffad]/12 disabled:cursor-not-allowed disabled:opacity-30"
+              disabled={disabled}
+              onClick={onAdd}
+              type="button"
+            >
+              + 문제 추가
+            </button>
+          </span>
+        </div>
+        <label>
+          <span className="sr-only">문제 선택</span>
+          <select
+            className="h-[58px] w-full rounded-lg border border-white/10 bg-[#10171c] px-3 text-sm text-white/80 outline-none transition focus:border-[#2cffad]/50 focus:ring-2 focus:ring-[#2cffad]/20 disabled:opacity-50"
+            disabled={disabled || availableProblems.length === 0}
+            onChange={(event) =>
+              onChange({ ...selection, problemId: event.target.value })
+            }
+            value={currentProblemId}
+          >
+            {availableProblems.map((problem) => (
+              <option key={problem.id} value={problem.id}>
+                [{difficultyLabels[problem.difficulty]}] {problem.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       <fieldset disabled={disabled}>
         <legend className="mb-2 font-mono text-[10px] tracking-[0.18em] text-white/35">TRAINING MODE</legend>

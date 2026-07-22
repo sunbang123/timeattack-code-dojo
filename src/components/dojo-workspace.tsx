@@ -7,6 +7,7 @@ import useSWR from "swr";
 import { AnswerEditor } from "@/components/answer-editor";
 import { CountdownTimer } from "@/components/countdown-timer";
 import { DiscardDialog } from "@/components/discard-dialog";
+import { ProblemGeneratorDialog } from "@/components/problem-generator-dialog";
 import { ProblemPanel } from "@/components/problem-panel";
 import { SelectionBar } from "@/components/selection-bar";
 import { SubmissionFeedback } from "@/components/submission-feedback";
@@ -32,6 +33,7 @@ const defaultSelection: ProblemSelection = {
 
 export function DojoWorkspace() {
   const [selection, setSelection] = useState<ProblemSelection>(defaultSelection);
+  const [generatorOpen, setGeneratorOpen] = useState(false);
   const requestUrl = buildProblemUrl(selection);
   const { data, error, isLoading, mutate } = useSWR(requestUrl, fetchProblem, {
     revalidateOnFocus: false,
@@ -39,6 +41,9 @@ export function DojoWorkspace() {
   });
 
   const currentProblemId = data?.problem.id ?? selection.problemId ?? "";
+  const hasLoadedWorkspace = Boolean(
+    !isLoading && !error && data && data.available_problems.length > 0,
+  );
 
   return (
     <main className="min-h-screen bg-[#070b0f] text-[#f4f1e8]">
@@ -72,6 +77,7 @@ export function DojoWorkspace() {
               availableProblems={data?.available_problems ?? []}
               currentProblemId={currentProblemId}
               disabled
+              onAdd={() => setGeneratorOpen(true)}
               onChange={setSelection}
               selection={selection}
             />
@@ -82,6 +88,7 @@ export function DojoWorkspace() {
             <SelectionBar
               availableProblems={[]}
               currentProblemId=""
+              onAdd={() => setGeneratorOpen(true)}
               onChange={setSelection}
               selection={selection}
             />
@@ -92,6 +99,7 @@ export function DojoWorkspace() {
             <SelectionBar
               availableProblems={data?.available_problems ?? []}
               currentProblemId={currentProblemId}
+              onAdd={() => setGeneratorOpen(true)}
               onChange={setSelection}
               selection={selection}
             />
@@ -101,10 +109,24 @@ export function DojoWorkspace() {
           <LoadedWorkspace
             key={`${data.problem.id}:${data.problem.version}:${data.problem.mode}:${data.problem.language}`}
             data={data}
+            generatorOpen={generatorOpen}
+            onAddProblem={() => setGeneratorOpen(true)}
+            onCloseGenerator={() => setGeneratorOpen(false)}
+            onProblemBankChanged={() => void mutate()}
             onSelectionChange={setSelection}
             selection={selection}
           />
         )}
+        {!hasLoadedWorkspace ? (
+          <ProblemGeneratorDialog
+            onClose={() => setGeneratorOpen(false)}
+            onCreated={(problem) => {
+              setGeneratorOpen(false);
+              setSelection((current) => ({ ...current, problemId: problem.id }));
+            }}
+            open={generatorOpen}
+          />
+        ) : null}
       </div>
     </main>
   );
@@ -112,10 +134,18 @@ export function DojoWorkspace() {
 
 function LoadedWorkspace({
   data,
+  generatorOpen,
+  onAddProblem,
+  onCloseGenerator,
+  onProblemBankChanged,
   onSelectionChange,
   selection,
 }: {
   data: import("@/lib/problem-api").ProblemResponse;
+  generatorOpen: boolean;
+  onAddProblem: () => void;
+  onCloseGenerator: () => void;
+  onProblemBankChanged: () => void;
   onSelectionChange: (selection: ProblemSelection) => void;
   selection: ProblemSelection;
 }) {
@@ -209,6 +239,7 @@ function LoadedWorkspace({
       <SelectionBar
         availableProblems={data.available_problems}
         currentProblemId={data.problem.id}
+        onAdd={onAddProblem}
         onChange={requestSelection}
         selection={selection}
       />
@@ -237,6 +268,15 @@ function LoadedWorkspace({
         onCancel={cancelSelection}
         onConfirm={confirmSelection}
         open={pendingSelection !== null}
+      />
+      <ProblemGeneratorDialog
+        onClose={onCloseGenerator}
+        onCreated={(problem) => {
+          onCloseGenerator();
+          onProblemBankChanged();
+          requestSelection({ ...selection, problemId: problem.id });
+        }}
+        open={generatorOpen}
       />
     </>
   );

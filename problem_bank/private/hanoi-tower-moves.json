@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "problem_id": "hanoi-tower-moves",
+  "version": 1,
+  "pseudocode_rubric": {
+    "pass_score": 100,
+    "criteria": [
+      {
+        "id": "correctness",
+        "description": "모든 원판이 올바른 순서와 규칙을 만족하며 목표 기둥으로 이동했는가",
+        "weight": 70
+      },
+      {
+        "id": "efficiency",
+        "description": "재귀 호출을 이용해 O(2^N) 시간에 해결했는가",
+        "weight": 20
+      },
+      {
+        "id": "code_style",
+        "description": "가독성 있는 변수명과 적절한 주석이 포함되었는가",
+        "weight": 10
+      }
+    ]
+  },
+  "reference_solutions": {
+    "python": "import sys\n\ndef hanoi(n, src, dst, aux, moves):\n    if n == 0:\n        return\n    hanoi(n-1, src, aux, dst, moves)\n    moves.append((src, dst))\n    hanoi(n-1, aux, dst, src, moves)\n\n\ndef main():\n    n = int(sys.stdin.readline())\n    moves = []\n    hanoi(n, 'A', 'C', 'B', moves)\n    for a, b in moves:\n        print(a, b)\n\nif __name__ == \"__main__\":\n    main()",
+    "cpp": "#include <iostream>\n#include <utility>\n#include <vector>\nusing namespace std;\n\nvoid hanoi(int n, char src, char dst, char aux, vector<pair<char,char>>& moves) {\n    if (n == 0) return;\n    hanoi(n-1, src, aux, dst, moves);\n    moves.emplace_back(src, dst);\n    hanoi(n-1, aux, dst, src, moves);\n}\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    int n; if(!(cin>>n)) return 0;\n    vector<pair<char,char>> moves;\n    hanoi(n, 'A', 'C', 'B', moves);\n    for (auto &p : moves) {\n        cout << p.first << ' ' << p.second << '\\n';\n    }\n    return 0;\n}"
+  },
+  "hidden_tests": [
+    {
+      "name": "n1",
+      "input": "1",
+      "expected_output": "A C"
+    },
+    {
+      "name": "n4",
+      "input": "4",
+      "expected_output": "A B\nA C\nB C\nA B\nC A\nC B\nA B\nA C\nB C\nB A\nC A\nB C\nA B\nA C\nB C"
+    },
+    {
+      "name": "n5",
+      "input": "5",
+      "expected_output": "A C\nA B\nC B\nA C\nB A\nB C\nA C\nA B\nC B\nC A\nB A\nC B\nA C\nA B\nC B\nA C\nB A\nB C\nA C\nB A\nC B\nC A\nB A\nB C\nA C\nA B\nC B\nA C\nB A\nB C\nA C"
+    }
+  ]
+}

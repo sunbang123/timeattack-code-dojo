@@ -1,18 +1,71 @@
 {
   "schema_version": "1.0.0",
-  "bank_version": 4,
+  "bank_version": 5,
   "problems": [
-    {"id": "add-two-integers", "difficulty": "easy", "version": 1},
-    {"id": "count-vowels-basic", "difficulty": "easy", "version": 1},
-    {"id": "sum-two-numbers", "difficulty": "easy", "version": 2},
-    {"id": "count-vowels", "difficulty": "easy", "version": 2},
-    {"id": "valid-bracket-string", "difficulty": "medium", "version": 1},
-    {"id": "rotate-array-right", "difficulty": "medium", "version": 1},
-    {"id": "balanced-brackets", "difficulty": "medium", "version": 2},
-    {"id": "rotate-array", "difficulty": "medium", "version": 2},
-    {"id": "shortest-path-basic", "difficulty": "hard", "version": 1},
-    {"id": "longest-increasing-subsequence-length", "difficulty": "hard", "version": 1},
-    {"id": "shortest-path", "difficulty": "hard", "version": 2},
-    {"id": "longest-increasing-subsequence", "difficulty": "hard", "version": 2}
+    {
+      "id": "add-two-integers",
+      "difficulty": "easy",
+      "version": 1
+    },
+    {
+      "id": "count-vowels-basic",
+      "difficulty": "easy",
+      "version": 1
+    },
+    {
+      "id": "sum-two-numbers",
+      "difficulty": "easy",
+      "version": 2
+    },
+    {
+      "id": "count-vowels",
+      "difficulty": "easy",
+      "version": 2
+    },
+    {
+      "id": "valid-bracket-string",
+      "difficulty": "medium",
+      "version": 1
+    },
+    {
+      "id": "rotate-array-right",
+      "difficulty": "medium",
+      "version": 1
+    },
+    {
+      "id": "balanced-brackets",
+      "difficulty": "medium",
+      "version": 2
+    },
+    {
+      "id": "rotate-array",
+      "difficulty": "medium",
+      "version": 2
+    },
+    {
+      "id": "shortest-path-basic",
+      "difficulty": "hard",
+      "version": 1
+    },
+    {
+      "id": "longest-increasing-subsequence-length",
+      "difficulty": "hard",
+      "version": 1
+    },
+    {
+      "id": "shortest-path",
+      "difficulty": "hard",
+      "version": 2
+    },
+    {
+      "id": "longest-increasing-subsequence",
+      "difficulty": "hard",
+      "version": 2
+    },
+    {
+      "id": "hanoi-tower-moves",
+      "difficulty": "easy",
+      "version": 1
+    }
   ]
 }

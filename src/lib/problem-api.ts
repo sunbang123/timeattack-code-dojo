@@ -52,6 +52,12 @@ export type ProblemResponse = {
   problem: ProblemPayload;
 };
 
+export type GeneratedProblemResponse = {
+  bank_version: number;
+  model: string;
+  problem: ProblemSummary;
+};
+
 export type SubmissionResult = {
   kind: "code" | "pseudocode";
   status: "accepted" | "wrong_answer" | "compile_error" | "runtime_error" | "evaluated";
@@ -122,6 +128,26 @@ export async function fetchProblem(url: string): Promise<ProblemResponse> {
     throw new ProblemApiError(message, response.status);
   }
   return (await response.json()) as ProblemResponse;
+}
+
+export async function generateProblem(
+  prompt: string,
+  difficulty: Difficulty,
+): Promise<GeneratedProblemResponse> {
+  const response = await fetch("/api/generate_problem", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, difficulty }),
+  });
+  const payload = (await response.json()) as ErrorResponse &
+    Partial<GeneratedProblemResponse>;
+  if (!response.ok || !payload.problem || typeof payload.bank_version !== "number") {
+    throw new ProblemApiError(
+      payload.error?.message ?? `문제를 생성하지 못했습니다. (HTTP ${response.status})`,
+      response.status,
+    );
+  }
+  return payload as GeneratedProblemResponse;
 }
 
 export async function submitAnswer(

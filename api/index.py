@@ -14,6 +14,7 @@ from api.problem_service import (
     MODES,
     get_problem_response,
 )
+from api.problem_generation_service import ProblemGenerationError, generate_problem
 from api.solution_service import (
     SolutionAccessError,
     get_solution_payload,
@@ -106,6 +107,30 @@ def problem() -> tuple[Response, int]:
     if payload is None:
         abort(404, description="Problem not found for the requested selection")
     return jsonify(payload), 200
+
+
+@app.post("/generate-problem")
+@app.post("/api/generate-problem")
+@app.post("/generate_problem")
+@app.post("/api/generate_problem")
+def generate_problem_route() -> tuple[Response, int]:
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        abort(400, description="Request body must be a JSON object")
+    allowed_fields = {"prompt", "difficulty"}
+    unknown_fields = sorted(set(payload) - allowed_fields)
+    if unknown_fields:
+        abort(400, description=f"Unknown request field: {unknown_fields[0]}")
+    if set(payload) != allowed_fields:
+        missing = sorted(allowed_fields - set(payload))
+        abort(400, description=f"Missing request field: {missing[0]}")
+    try:
+        result = generate_problem(payload["prompt"], payload["difficulty"])
+    except ProblemGenerationError as error:
+        abort(400, description=str(error))
+    except ProviderError as error:
+        abort(502, description=str(error))
+    return jsonify(result), 201
 
 
 @app.post("/submit")

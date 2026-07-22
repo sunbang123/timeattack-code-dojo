@@ -3,9 +3,11 @@ from unittest.mock import patch
 
 from api.index import app
 from api.health import app as health_app
+from api.generate_problem import app as generate_problem_app
 from api.problem import app as problem_app
 from api.submit import app as submit_app
 from api.problem_service import load_manifest
+from api.problem_generation_service import ProblemGenerationError
 from api.submission_service import ProviderError
 
 
@@ -37,8 +39,64 @@ class ApiTest(unittest.TestCase):
     def test_vercel_problem_entrypoint_exports_the_same_app(self) -> None:
         self.assertIs(problem_app, app)
 
+    def test_vercel_generate_problem_entrypoint_exports_the_same_app(self) -> None:
+        self.assertIs(generate_problem_app, app)
+
     def test_vercel_submit_entrypoint_exports_the_same_app(self) -> None:
         self.assertIs(submit_app, app)
+
+
+class ProblemGenerationApiTest(unittest.TestCase):
+    def setUp(self) -> None:
+        app.config.update(TESTING=True)
+        self.client = app.test_client()
+        self.payload = {
+            "prompt": "투 포인터를 연습할 수 있는 문자열 문제를 만들어 주세요.",
+            "difficulty": "medium",
+        }
+
+    @patch("api.index.generate_problem")
+    def test_generation_returns_created_problem(self, generate_mock) -> None:
+        generate_mock.return_value = {
+            "bank_version": 5,
+            "model": "test-model",
+            "problem": {
+                "id": "two-pointer-string",
+                "title": "문자열 구간 찾기",
+                "difficulty": "medium",
+            },
+        }
+
+        response = self.client.post("/api/generate_problem", json=self.payload)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json["problem"]["id"], "two-pointer-string")
+        generate_mock.assert_called_once_with(self.payload["prompt"], "medium")
+
+    def test_generation_rejects_unknown_fields(self) -> None:
+        response = self.client.post(
+            "/api/generate_problem", json={**self.payload, "debug": True}
+        )
+        self.assertEqual(response.status_code, 400)
+
+    @patch(
+        "api.index.generate_problem",
+        side_effect=ProblemGenerationError("문제 요청이 너무 짧습니다."),
+    )
+    def test_generation_maps_validation_error_to_bad_request(self, _generate_mock) -> None:
+        response = self.client.post("/api/generate_problem", json=self.payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json["error"]["message"], "문제 요청이 너무 짧습니다.")
+
+
+    @patch(
+        "api.index.generate_problem",
+        side_effect=ProviderError("judge unavailable"),
+    )
+    def test_generation_maps_judge_failure_to_bad_gateway(self, _generate_mock) -> None:
+        response = self.client.post("/api/generate_problem", json=self.payload)
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json["error"]["message"], "judge unavailable")
 
 
 class SubmissionApiTest(unittest.TestCase):
@@ -112,7 +170,9 @@ class ProblemApiTest(unittest.TestCase):
                     problem = response.json["problem"]
                     self.assertEqual(problem["mode"], mode)
                     self.assertEqual(problem["language"], language)
-                    self.assertEqual(response.json["bank_version"], 4)
+                    self.assertEqual(
+                        response.json["bank_version"], load_manifest()["bank_version"]
+                    )
                     if mode == "beginner":
                         self.assertEqual(problem["answer_format"], "pseudocode")
                         self.assertIn("prompt", problem)
@@ -167,8 +227,12 @@ class ProblemApiTest(unittest.TestCase):
         easy_only = self.get_problem(difficulty="easy")
 
         self.assertEqual(complete.status_code, 200)
-        self.assertEqual(len(complete.json["available_problems"]), 12)
-        self.assertEqual(len(easy_only.json["available_problems"]), 4)
+        expected_total = len(load_manifest()["problems"])
+        expected_easy = sum(
+            entry["difficulty"] == "easy" for entry in load_manifest()["problems"]
+        )
+        self.assertEqual(len(complete.json["available_problems"]), expected_total)
+        self.assertEqual(len(easy_only.json["available_problems"]), expected_easy)
         self.assertTrue(
             all(
                 problem["difficulty"] == "easy"

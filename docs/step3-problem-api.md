@@ -11,7 +11,7 @@ GET /api/problem?mode=intermediate&language=python
 - `mode`: `beginner`, `intermediate`, `expert`
 - `language`: `python`, `cpp`
 
-선택 파라미터 `problem_id`로 특정 문제를 지정할 수 있다. 생략하면 `problem_bank/manifest.json`의 첫 문제를 안정적으로 선택한다. `difficulty`는 `easy`, `medium`, `hard` 중 하나를 받는 이전 클라이언트 호환용 필터이며, 생략하면 12개 전체 목록을 반환한다. 알 수 없는 파라미터, 중복 파라미터, 빈 값은 `400`으로 거절한다.
+선택 파라미터 `problem_id`로 특정 문제를 지정할 수 있다. 생략하면 `problem_bank/manifest.json`의 첫 문제를 안정적으로 선택한다. `difficulty`는 `easy`, `medium`, `hard` 중 하나를 받는 이전 클라이언트 호환용 필터이며, 생략하면 등록된 전체 목록을 반환한다. 알 수 없는 파라미터, 중복 파라미터, 빈 값은 `400`으로 거절한다.
 
 ## 성공 응답
 
@@ -37,7 +37,7 @@ GET /api/problem?mode=intermediate&language=python
 }
 ```
 
-`available_problems`는 기본적으로 등록된 12개 전체의 공개 문제 요약이다. `difficulty`를 명시했을 때만 해당 난이도로 제한된다. 문제 설명, 제약, 공개 예시와 태그도 함께 반환한다. 모드별 필드는 다음처럼 제한한다.
+`available_problems`는 기본적으로 등록된 전체 문제의 공개 요약이다. `difficulty`를 명시했을 때만 해당 난이도로 제한된다. 문제 설명, 제약, 공개 예시와 태그도 함께 반환한다. 모드별 필드는 다음처럼 제한한다.
 
 - `beginner`: `prompt`만 추가
 - `intermediate`: 요청 언어의 TODO 스켈레톤을 `starter_code`로 추가
