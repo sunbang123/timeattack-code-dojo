@@ -9,15 +9,14 @@ import hmac
 import json
 import os
 import re
-from pathlib import Path
 from time import time as _current_time
 from typing import Any
 
 from api.problem_service import (
     LANGUAGES,
     MODES,
-    PROBLEM_BANK_ROOT,
     ProblemBankError,
+    load_private_problem,
     load_public_problem,
 )
 
@@ -163,13 +162,10 @@ def verify_solution_access_token(
 
 
 def _read_private_problem(problem_id: str) -> dict[str, Any]:
-    path: Path = PROBLEM_BANK_ROOT / "private" / f"{problem_id}.json"
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        value = load_private_problem(problem_id)
+    except ProblemBankError as exc:
         raise SolutionDataError("Solution data could not be loaded") from exc
-    if not isinstance(value, dict) or value.get("problem_id") != problem_id:
-        raise SolutionDataError("Solution data is invalid")
     return value
 
 

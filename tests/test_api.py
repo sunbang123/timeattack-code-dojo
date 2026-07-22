@@ -1,6 +1,8 @@
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
+import api.problem_service as problem_service
 from api.index import app
 from api.health import app as health_app
 from api.generate_problem import app as generate_problem_app
@@ -194,6 +196,34 @@ class ProblemApiTest(unittest.TestCase):
 
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.json["problem"]["id"], expected_id)
+
+    def test_bundled_problem_bank_works_without_source_json_files(self) -> None:
+        caches = (
+            problem_service.load_manifest,
+            problem_service.load_public_problem,
+            problem_service.load_private_problem,
+            problem_service.load_problem_bank_bundle,
+        )
+        try:
+            with patch.object(
+                problem_service,
+                "PROBLEM_BANK_ROOT",
+                Path("__missing_problem_bank__"),
+            ):
+                for cached_function in caches:
+                    cached_function.cache_clear()
+                response = self.get_problem(mode="intermediate", language="cpp")
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(len(response.json["available_problems"]), 13)
+                problem_id = response.json["problem"]["id"]
+                self.assertEqual(
+                    problem_service.load_private_problem(problem_id)["problem_id"],
+                    problem_id,
+                )
+        finally:
+            for cached_function in caches:
+                cached_function.cache_clear()
 
     def test_every_seed_problem_supports_every_mode_and_language(self) -> None:
         for entry in load_manifest()["problems"]:

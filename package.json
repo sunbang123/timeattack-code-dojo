@@ -11,7 +11,7 @@
     "dev:web": "node scripts/copy-monaco-assets.mjs && next dev --turbopack",
     "dev:api": "node scripts/run-api.mjs",
     "setup:python": "node scripts/setup-python.mjs",
-    "build": "node scripts/copy-monaco-assets.mjs && next build",
+    "build": "node scripts/build-problem-bank-bundle.mjs && node scripts/copy-monaco-assets.mjs && next build",
     "postinstall": "node scripts/copy-monaco-assets.mjs",
     "lint": "eslint .",
     "test": "pnpm test:web && pnpm test:api && pnpm test:problems",
@@ -20,6 +20,7 @@
     "test:problems": "node scripts/test-problems.mjs",
     "test:problems:cpp": "node scripts/test-problems-cpp.mjs",
     "test:problems:judge0": "node scripts/test-problems-judge0.mjs",
+    "bundle:problems": "node scripts/build-problem-bank-bundle.mjs",
     "check": "pnpm lint && pnpm test && pnpm build"
   },
   "dependencies": {

@@ -10,6 +10,7 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROBLEM_BANK_ROOT = PROJECT_ROOT / "problem_bank"
+PROBLEM_BANK_BUNDLE_PATH = PROJECT_ROOT / "problem_bank" / "bundle.json"
 
 DIFFICULTIES = ("easy", "medium", "hard")
 MODES = ("beginner", "intermediate", "expert")
@@ -31,8 +32,24 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_problem_bank_bundle() -> dict[str, Any]:
+    bundle = _read_json(PROBLEM_BANK_BUNDLE_PATH)
+    if not all(
+        isinstance(bundle.get(section), dict)
+        for section in ("manifest", "public", "private")
+    ):
+        raise ProblemBankError("Problem bank bundle is invalid")
+    return bundle
+
+
+@lru_cache(maxsize=1)
 def load_manifest() -> dict[str, Any]:
-    manifest = _read_json(PROBLEM_BANK_ROOT / "manifest.json")
+    path = PROBLEM_BANK_ROOT / "manifest.json"
+    manifest = (
+        _read_json(path)
+        if path.is_file()
+        else load_problem_bank_bundle()["manifest"]
+    )
     if manifest.get("schema_version") != "1.0.0" or not isinstance(
         manifest.get("problems"), list
     ):
@@ -42,9 +59,33 @@ def load_manifest() -> dict[str, Any]:
 
 @lru_cache(maxsize=16)
 def load_public_problem(problem_id: str) -> dict[str, Any]:
-    problem = _read_json(PROBLEM_BANK_ROOT / "public" / f"{problem_id}.json")
+    path = PROBLEM_BANK_ROOT / "public" / f"{problem_id}.json"
+    if path.is_file():
+        problem = _read_json(path)
+    else:
+        problem = load_problem_bank_bundle()["public"].get(problem_id)
+        if not isinstance(problem, dict):
+            raise ProblemBankError(
+                "Public problem is missing from the problem bank bundle"
+            )
     if problem.get("id") != problem_id:
         raise ProblemBankError("Public problem id does not match its manifest entry")
+    return problem
+
+
+@lru_cache(maxsize=16)
+def load_private_problem(problem_id: str) -> dict[str, Any]:
+    path = PROBLEM_BANK_ROOT / "private" / f"{problem_id}.json"
+    if path.is_file():
+        problem = _read_json(path)
+    else:
+        problem = load_problem_bank_bundle()["private"].get(problem_id)
+        if not isinstance(problem, dict):
+            raise ProblemBankError(
+                "Private problem is missing from the problem bank bundle"
+            )
+    if problem.get("problem_id") != problem_id:
+        raise ProblemBankError("Private problem id does not match its manifest entry")
     return problem
 
 

@@ -12,7 +12,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from api.problem_service import PROBLEM_BANK_ROOT, ProblemBankError, load_public_problem
+from api.problem_service import (
+    ProblemBankError,
+    load_private_problem,
+    load_public_problem,
+)
 
 
 PROVIDER_TIMEOUT_SECONDS = 15
@@ -28,13 +32,10 @@ class ProviderError(RuntimeError):
 
 
 def _read_private_problem(problem_id: str) -> dict[str, Any]:
-    path = PROBLEM_BANK_ROOT / "private" / f"{problem_id}.json"
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        value = load_private_problem(problem_id)
+    except ProblemBankError as exc:
         raise SubmissionError("채점 데이터를 불러오지 못했습니다.") from exc
-    if not isinstance(value, dict) or value.get("problem_id") != problem_id:
-        raise SubmissionError("채점 데이터가 올바르지 않습니다.")
     return value
 
 

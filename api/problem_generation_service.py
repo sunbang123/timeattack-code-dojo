@@ -13,6 +13,7 @@ from api.problem_service import (
     DIFFICULTIES,
     PROBLEM_BANK_ROOT,
     load_manifest,
+    load_private_problem,
     load_public_problem,
 )
 from api.submission_service import ProviderError, _grade_code, _request_json
@@ -362,6 +363,7 @@ def _store_generated_problem(content: dict[str, Any], difficulty: str) -> dict[s
             private_path.unlink(missing_ok=True)
             raise ProblemGenerationError("생성된 문제를 문제은행에 저장하지 못했습니다.") from exc
         load_manifest.cache_clear()
+        load_private_problem.cache_clear()
         load_public_problem.cache_clear()
         return {
             "bank_version": next_manifest["bank_version"],
