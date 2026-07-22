@@ -1,9 +1,15 @@
 import json
 import os
 import unittest
+from io import BytesIO
+from urllib.error import HTTPError
 from unittest.mock import patch
 
-from api.submission_service import _grade_pseudocode
+from api.submission_service import (
+    ProviderHTTPError,
+    _grade_pseudocode,
+    _request_json,
+)
 
 
 PUBLIC_PROBLEM = {
@@ -40,6 +46,39 @@ def provider_result(answer_derivable: bool, has_logical_error: bool) -> dict:
 
 
 class PseudocodeGradingTest(unittest.TestCase):
+    @patch("api.submission_service.urlopen")
+    def test_http_error_logs_provider_detail_without_query_string(self, urlopen_mock) -> None:
+        urlopen_mock.side_effect = HTTPError(
+            "https://provider.test/chat/completions?token=secret",
+            400,
+            "Bad Request",
+            {},
+            BytesIO(
+                json.dumps(
+                    {
+                        "error": {
+                            "message": "response_format is not supported",
+                            "type": "invalid_request_error",
+                        }
+                    }
+                ).encode("utf-8")
+            ),
+        )
+
+        with self.assertLogs("api.submission_service", level="WARNING") as logs:
+            with self.assertRaises(ProviderHTTPError) as raised:
+                _request_json(
+                    "POST",
+                    "https://provider.test/chat/completions?token=secret",
+                    payload={"answer": "private"},
+                )
+
+        self.assertEqual(raised.exception.status_code, 400)
+        message = "\n".join(logs.output)
+        self.assertIn("response_format is not supported", message)
+        self.assertNotIn("token=secret", message)
+        self.assertNotIn("private", message)
+
     @patch.dict(
         os.environ,
         {
@@ -145,6 +184,54 @@ class PseudocodeGradingTest(unittest.TestCase):
             "핵심 논리가 실제로 틀렸을 때만",
         ):
             self.assertIn(required_policy, policy)
+
+    @patch.dict(
+        os.environ,
+        {
+            "HF_TOKEN": "test-token",
+            "HF_BASE_URL": "https://huggingface.test/v1",
+            "HF_MODEL": "test-model",
+        },
+        clear=False,
+    )
+    @patch("api.submission_service._request_json")
+    def test_retries_http_400_with_json_object_format(self, request_mock) -> None:
+        request_mock.side_effect = [ProviderHTTPError(400), provider_result(True, False)]
+
+        result = _grade_pseudocode(
+            "두 수를 더해 출력한다.",
+            PUBLIC_PROBLEM,
+            PRIVATE_PROBLEM,
+        )
+
+        self.assertTrue(result["passed"])
+        self.assertEqual(request_mock.call_count, 2)
+        first_payload = request_mock.call_args_list[0].kwargs["payload"]
+        retry_payload = request_mock.call_args_list[1].kwargs["payload"]
+        self.assertEqual(first_payload["response_format"]["type"], "json_schema")
+        self.assertEqual(retry_payload["response_format"], {"type": "json_object"})
+
+    @patch.dict(
+        os.environ,
+        {
+            "HF_TOKEN": "test-token",
+            "HF_BASE_URL": "https://huggingface.test/v1",
+            "HF_MODEL": "test-model",
+        },
+        clear=False,
+    )
+    @patch("api.submission_service._request_json")
+    def test_does_not_retry_non_400_provider_error(self, request_mock) -> None:
+        request_mock.side_effect = ProviderHTTPError(429)
+
+        with self.assertRaises(ProviderHTTPError):
+            _grade_pseudocode(
+                "두 수를 더해 출력한다.",
+                PUBLIC_PROBLEM,
+                PRIVATE_PROBLEM,
+            )
+
+        request_mock.assert_called_once()
 
 
 if __name__ == "__main__":

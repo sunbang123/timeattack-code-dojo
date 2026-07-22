@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import time
 from functools import lru_cache
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from api.problem_service import (
@@ -21,6 +22,7 @@ from api.problem_service import (
 
 PROVIDER_TIMEOUT_SECONDS = 15
 POLL_INTERVAL_SECONDS = 0.35
+LOGGER = logging.getLogger(__name__)
 
 
 class SubmissionError(RuntimeError):
@@ -29,6 +31,34 @@ class SubmissionError(RuntimeError):
 
 class ProviderError(RuntimeError):
     """An external grading provider is unavailable or returned invalid data."""
+
+
+class ProviderHTTPError(ProviderError):
+    """An external grading provider rejected an HTTP request."""
+
+    def __init__(self, status_code: int) -> None:
+        self.status_code = status_code
+        super().__init__(f"채점 서비스가 HTTP {status_code} 오류를 반환했습니다.")
+
+
+def _provider_error_detail(raw: str) -> str:
+    """Extract a bounded provider message without logging the submitted answer."""
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError:
+        return "non-JSON response"
+    if isinstance(value, dict):
+        error = value.get("error", value)
+        if isinstance(error, dict):
+            parts = [error.get(key) for key in ("message", "type", "code")]
+            value = " | ".join(part for part in parts if isinstance(part, str) and part)
+        elif isinstance(error, str):
+            value = error
+        else:
+            value = ""
+    if not isinstance(value, str):
+        return ""
+    return " ".join(value.split())[:500]
 
 
 def _read_private_problem(problem_id: str) -> dict[str, Any]:
@@ -60,7 +90,21 @@ def _request_json(
         with urlopen(provider_request, timeout=timeout) as response:
             raw = response.read().decode("utf-8")
     except HTTPError as exc:
-        raise ProviderError(f"채점 서비스가 HTTP {exc.code} 오류를 반환했습니다.") from exc
+        try:
+            detail = _provider_error_detail(exc.read().decode("utf-8", errors="replace"))
+        except (OSError, AttributeError):
+            detail = ""
+        endpoint = urlsplit(url)
+        LOGGER.warning(
+            "Grading provider rejected request: method=%s endpoint=%s://%s%s status=%s detail=%s",
+            method,
+            endpoint.scheme,
+            endpoint.netloc,
+            endpoint.path,
+            exc.code,
+            detail or "unavailable",
+        )
+        raise ProviderHTTPError(exc.code) from exc
     except (URLError, TimeoutError) as exc:
         raise ProviderError("채점 서비스에 연결하지 못했습니다.") from exc
     try:
@@ -279,7 +323,8 @@ def _grade_pseudocode(
                 "흐름을 판단할 수 없을 때만, "
                 "has_logical_error=true는 핵심 논리가 실제로 틀렸을 때만 사용하세요.\n"
                 "score와 missing_steps는 학습용 피드백이며 위 두 사실을 바꾸지 않습니다. "
-                "답변은 한국어로 짧고 구체적으로 작성하세요."
+                "답변은 한국어로 짧고 구체적으로 작성하세요. 반드시 answer_derivable, "
+                "has_logical_error, score, feedback, missing_steps만 포함한 JSON 객체로 답하세요."
             ),
         },
         {
@@ -294,18 +339,36 @@ def _grade_pseudocode(
             ),
         },
     ]
-    result = _request_json(
-        "POST",
-        f"{base_url}/chat/completions",
-        headers={"Authorization": f"Bearer {token}"},
-        payload={
-            "model": model,
-            "messages": messages,
-            "response_format": {"type": "json_schema", "json_schema": schema},
-            "temperature": 0,
-            "max_tokens": 300,
-        },
-    )
+    request_payload = {
+        "model": model,
+        "messages": messages,
+        "response_format": {"type": "json_schema", "json_schema": schema},
+        "temperature": 0,
+        "max_tokens": 300,
+    }
+    try:
+        result = _request_json(
+            "POST",
+            f"{base_url}/chat/completions",
+            headers={"Authorization": f"Bearer {token}"},
+            payload=request_payload,
+        )
+    except ProviderHTTPError as exc:
+        if exc.status_code != 400:
+            raise
+        LOGGER.info(
+            "Retrying pseudocode grading with JSON object output after HTTP 400: model=%s",
+            model,
+        )
+        result = _request_json(
+            "POST",
+            f"{base_url}/chat/completions",
+            headers={"Authorization": f"Bearer {token}"},
+            payload={
+                **request_payload,
+                "response_format": {"type": "json_object"},
+            },
+        )
     try:
         content = result["choices"][0]["message"]["content"]
         evaluation = json.loads(content) if isinstance(content, str) else content
