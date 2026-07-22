@@ -19,12 +19,12 @@
   ],
   "modes": {
     "beginner": {
-      "time_limit_seconds": 300,
+      "time_limit_seconds": 90,
       "answer_format": "pseudocode",
       "prompt": "문자열의 각 문자를 확인하고 모음일 때 개수를 늘리는 과정을 의사코드로 작성하세요."
     },
     "intermediate": {
-      "time_limit_seconds": 600,
+      "time_limit_seconds": 150,
       "answer_format": "code",
       "skeletons": {
         "python": "text = input()\ncount = 0\n# TODO: 각 문자가 모음인지 확인하세요.\nprint(count)\n",
@@ -32,7 +32,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 900,
+      "time_limit_seconds": 210,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

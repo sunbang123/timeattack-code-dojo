@@ -19,12 +19,12 @@
   ],
   "modes": {
     "beginner": {
-      "time_limit_seconds": 300,
+      "time_limit_seconds": 240,
       "answer_format": "pseudocode",
       "prompt": "거리 배열과 우선순위 큐를 사용하는 다익스트라 알고리즘을 의사코드로 작성하세요."
     },
     "intermediate": {
-      "time_limit_seconds": 600,
+      "time_limit_seconds": 360,
       "answer_format": "code",
       "skeletons": {
         "python": "import heapq\n\nn, m, start, end = map(int, input().split())\ngraph = [[] for _ in range(n + 1)]\nfor _ in range(m):\n    u, v, w = map(int, input().split())\n    graph[u].append((v, w))\n    graph[v].append((u, w))\n# TODO: 다익스트라 알고리즘으로 최단 거리를 구하세요.\n",
@@ -32,7 +32,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 900,
+      "time_limit_seconds": 480,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

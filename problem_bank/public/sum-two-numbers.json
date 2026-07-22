@@ -18,9 +18,9 @@
     {"input": "4 0\n0 0 0 0\n", "output": "10\n", "explanation": "모든 연속 구간의 합이 0입니다."}
   ],
   "modes": {
-    "beginner": {"time_limit_seconds": 480, "answer_format": "pseudocode", "prompt": "현재 누적합에서 K를 뺀 값이 이전에 몇 번 등장했는지 해시 맵으로 찾는 과정을 작성하세요."},
+    "beginner": {"time_limit_seconds": 120, "answer_format": "pseudocode", "prompt": "현재 누적합에서 K를 뺀 값이 이전에 몇 번 등장했는지 해시 맵으로 찾는 과정을 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 720,
+      "time_limit_seconds": 210,
       "answer_format": "code",
       "skeletons": {
         "python": "from collections import defaultdict\n\nn, target = map(int, input().split())\nvalues = list(map(int, input().split()))\nfrequency = defaultdict(int)\nfrequency[0] = 1\n# TODO: 누적합의 등장 횟수를 이용해 정답을 구하세요.\n",
@@ -28,7 +28,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 960,
+      "time_limit_seconds": 300,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

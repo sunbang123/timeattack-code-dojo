@@ -19,12 +19,12 @@
   ],
   "modes": {
     "beginner": {
-      "time_limit_seconds": 300,
+      "time_limit_seconds": 90,
       "answer_format": "pseudocode",
       "prompt": "입력, 덧셈, 출력의 순서가 드러나도록 의사코드를 작성하세요."
     },
     "intermediate": {
-      "time_limit_seconds": 600,
+      "time_limit_seconds": 150,
       "answer_format": "code",
       "skeletons": {
         "python": "a, b = map(int, input().split())\n# TODO: 두 수의 합을 출력하세요.\n",
@@ -32,7 +32,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 900,
+      "time_limit_seconds": 210,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

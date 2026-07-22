@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
 import { AnswerEditor } from "@/components/answer-editor";
+import { CountdownTimer } from "@/components/countdown-timer";
 import { DiscardDialog } from "@/components/discard-dialog";
 import { ProblemPanel } from "@/components/problem-panel";
 import { SelectionBar } from "@/components/selection-bar";
@@ -54,6 +55,12 @@ export function DojoWorkspace() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {data ? (
+              <CountdownTimer
+                key={`${data.problem.id}:${data.problem.version}:${data.problem.mode}:${data.problem.language}`}
+                durationSeconds={data.problem.time_limit_seconds}
+              />
+            ) : null}
             <span className="hidden font-mono text-[10px] tracking-wider text-white/30 sm:inline">BANK V{data?.bank_version ?? "—"}</span>
             <span className="rounded-full border border-white/10 px-3 py-1.5 font-mono text-[10px] tracking-wider text-white/45">LIVE · TRAINING</span>
           </div>
@@ -242,7 +249,7 @@ function EditorHeader({
   isDirty: boolean;
   problem: ProblemPayload;
 }) {
-  const minutes = Math.ceil(problem.time_limit_seconds / 60);
+  const minutes = problem.time_limit_seconds / 60;
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 md:px-5">
       <div className="flex items-center gap-2 font-mono text-[10px] tracking-wider text-white/35">

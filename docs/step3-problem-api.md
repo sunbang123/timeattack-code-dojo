@@ -22,7 +22,7 @@ GET /api/problem?mode=intermediate&language=python
     {"id": "count-vowels-basic", "title": "영문 모음 개수 세기", "difficulty": "easy"},
     {"id": "sum-two-numbers", "title": "목표 합 부분 배열 개수", "difficulty": "easy"}
   ],
-  "bank_version": 3,
+  "bank_version": 4,
   "problem": {
     "id": "add-two-integers",
     "version": 1,
@@ -30,7 +30,7 @@ GET /api/problem?mode=intermediate&language=python
     "difficulty": "easy",
     "mode": "intermediate",
     "language": "python",
-    "time_limit_seconds": 720,
+    "time_limit_seconds": 150,
     "answer_format": "code",
     "starter_code": "..."
   }

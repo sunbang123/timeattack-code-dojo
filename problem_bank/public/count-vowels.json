@@ -18,9 +18,9 @@
     {"input": "rhythms\n", "output": "-1\n", "explanation": "다섯 모음을 모두 포함하는 구간이 없습니다."}
   ],
   "modes": {
-    "beginner": {"time_limit_seconds": 480, "answer_format": "pseudocode", "prompt": "오른쪽 포인터로 문자를 추가하고 모든 모음이 모이면 왼쪽 포인터를 줄이는 슬라이딩 윈도우를 작성하세요."},
+    "beginner": {"time_limit_seconds": 120, "answer_format": "pseudocode", "prompt": "오른쪽 포인터로 문자를 추가하고 모든 모음이 모이면 왼쪽 포인터를 줄이는 슬라이딩 윈도우를 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 720,
+      "time_limit_seconds": 210,
       "answer_format": "code",
       "skeletons": {
         "python": "text = input().strip()\ncounts = {vowel: 0 for vowel in 'aeiou'}\nleft = 0\n# TODO: 모든 모음이 들어 있는 최소 슬라이딩 윈도우를 구하세요.\n",
@@ -28,7 +28,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 960,
+      "time_limit_seconds": 300,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

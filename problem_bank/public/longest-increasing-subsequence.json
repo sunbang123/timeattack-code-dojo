@@ -18,9 +18,9 @@
     {"input": "5\n2 2 2 2 2\n", "output": "1 5\n", "explanation": "각 인덱스의 원소 하나를 고르는 다섯 방법이 있습니다."}
   ],
   "modes": {
-    "beginner": {"time_limit_seconds": 720, "answer_format": "pseudocode", "prompt": "값을 좌표 압축하고 Fenwick Tree의 각 노드에 (최대 길이, 방법 수)를 병합하는 과정을 작성하세요."},
+    "beginner": {"time_limit_seconds": 300, "answer_format": "pseudocode", "prompt": "값을 좌표 압축하고 Fenwick Tree의 각 노드에 (최대 길이, 방법 수)를 병합하는 과정을 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 960,
+      "time_limit_seconds": 450,
       "answer_format": "code",
       "skeletons": {
         "python": "MOD = 1_000_000_007\nn = int(input())\nvalues = list(map(int, input().split()))\ncoordinates = {value: index + 1 for index, value in enumerate(sorted(set(values)))}\n# TODO: Fenwick Tree에 (길이, 개수)를 저장하고 병합하세요.\n",
@@ -28,7 +28,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 1200,
+      "time_limit_seconds": 600,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

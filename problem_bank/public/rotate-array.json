@@ -18,9 +18,9 @@
     {"input": "4\n1 2 3 4\n1 3 2 4\n", "output": "2 0\n", "explanation": "회전하지 않을 때 값 1과 4가 같은 위치에 있습니다."}
   ],
   "modes": {
-    "beginner": {"time_limit_seconds": 600, "answer_format": "pseudocode", "prompt": "각 값의 A 위치와 B 위치 차이로 필요한 오른쪽 회전량을 구하고 빈도를 세는 과정을 작성하세요."},
+    "beginner": {"time_limit_seconds": 210, "answer_format": "pseudocode", "prompt": "각 값의 A 위치와 B 위치 차이로 필요한 오른쪽 회전량을 구하고 빈도를 세는 과정을 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 840,
+      "time_limit_seconds": 330,
       "answer_format": "code",
       "skeletons": {
         "python": "n = int(input())\nfirst = list(map(int, input().split()))\nsecond = list(map(int, input().split()))\npositions = [0] * (n + 1)\n# TODO: 각 값이 일치하는 데 필요한 회전량의 빈도를 세세요.\n",
@@ -28,7 +28,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 1080,
+      "time_limit_seconds": 450,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

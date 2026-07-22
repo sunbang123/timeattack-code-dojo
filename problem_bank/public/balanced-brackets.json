@@ -18,9 +18,9 @@
     {"input": "?)(\n", "output": "NO\n", "explanation": "어떻게 바꾸어도 길이가 홀수이고 닫힘 순서를 만족할 수 없습니다."}
   ],
   "modes": {
-    "beginner": {"time_limit_seconds": 600, "answer_format": "pseudocode", "prompt": "각 위치에서 가능한 열린 괄호 수의 최솟값과 최댓값을 함께 갱신하는 그리디 과정을 작성하세요."},
+    "beginner": {"time_limit_seconds": 210, "answer_format": "pseudocode", "prompt": "각 위치에서 가능한 열린 괄호 수의 최솟값과 최댓값을 함께 갱신하는 그리디 과정을 작성하세요."},
     "intermediate": {
-      "time_limit_seconds": 840,
+      "time_limit_seconds": 330,
       "answer_format": "code",
       "skeletons": {
         "python": "brackets = input().strip()\nminimum_open = 0\nmaximum_open = 0\n# TODO: 가능한 열린 괄호 수의 범위를 갱신하세요.\n",
@@ -28,7 +28,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 1080,
+      "time_limit_seconds": 450,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

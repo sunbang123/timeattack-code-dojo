@@ -112,7 +112,7 @@ class ProblemApiTest(unittest.TestCase):
                     problem = response.json["problem"]
                     self.assertEqual(problem["mode"], mode)
                     self.assertEqual(problem["language"], language)
-                    self.assertEqual(response.json["bank_version"], 3)
+                    self.assertEqual(response.json["bank_version"], 4)
                     if mode == "beginner":
                         self.assertEqual(problem["answer_format"], "pseudocode")
                         self.assertIn("prompt", problem)

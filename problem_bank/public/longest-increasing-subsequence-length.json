@@ -19,12 +19,12 @@
   ],
   "modes": {
     "beginner": {
-      "time_limit_seconds": 300,
+      "time_limit_seconds": 240,
       "answer_format": "pseudocode",
       "prompt": "각 길이의 증가 부분 수열이 가질 수 있는 최소 마지막 값을 관리하고 이분 탐색으로 갱신하는 과정을 의사코드로 작성하세요."
     },
     "intermediate": {
-      "time_limit_seconds": 600,
+      "time_limit_seconds": 360,
       "answer_format": "code",
       "skeletons": {
         "python": "from bisect import bisect_left\n\nn = int(input())\nvalues = list(map(int, input().split()))\ntails = []\n# TODO: tails를 이분 탐색으로 갱신하세요.\n",
@@ -32,7 +32,7 @@
       }
     },
     "expert": {
-      "time_limit_seconds": 900,
+      "time_limit_seconds": 480,
       "answer_format": "code",
       "starter_templates": {
         "python": "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n",

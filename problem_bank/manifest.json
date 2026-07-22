@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "bank_version": 3,
+  "bank_version": 4,
   "problems": [
     {"id": "add-two-integers", "difficulty": "easy", "version": 1},
     {"id": "count-vowels-basic", "difficulty": "easy", "version": 1},
