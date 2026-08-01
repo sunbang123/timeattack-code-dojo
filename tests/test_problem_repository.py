@@ -6,9 +6,29 @@ from api.problem_service import (
     load_manifest,
     load_public_problem,
 )
+from api.problem_repository import database_url
 
 
 class PersistentProblemBankReadTest(unittest.TestCase):
+    @patch.dict(
+        "os.environ",
+        {
+            "DATABASE_URL": "",
+            "POSTGRES_URL": (
+                "postgresql://postgres:secret@db.example.test:6543/postgres"
+                "?sslmode=require&supa=base-pooler.x"
+            ),
+        },
+    )
+    def test_vercel_supabase_metadata_is_removed_from_connection_url(self) -> None:
+        self.assertEqual(
+            database_url(),
+            (
+                "postgresql://postgres:secret@db.example.test:6543/postgres"
+                "?sslmode=require"
+            ),
+        )
+
     @patch("api.problem_service.load_database_manifest")
     @patch("api.problem_service.database_enabled", return_value=True)
     def test_database_manifest_reads_are_not_process_cached(

@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from collections.abc import Callable
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 try:
     import psycopg
@@ -29,7 +30,17 @@ def database_url() -> str | None:
     for name in ("DATABASE_URL", "POSTGRES_URL"):
         value = os.getenv(name, "").strip()
         if value:
-            return value
+            parts = urlsplit(value)
+            query = [
+                (key, query_value)
+                for key, query_value in parse_qsl(
+                    parts.query, keep_blank_values=True
+                )
+                if key != "supa"
+            ]
+            return urlunsplit(
+                (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
+            )
     return None
 
 
