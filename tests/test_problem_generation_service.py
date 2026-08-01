@@ -7,6 +7,7 @@ from api.problem_generation_service import (
     _unique_problem_id,
     _validate_generated_content,
     _validate_reference_solutions,
+    create_problem,
     generate_problem,
 )
 from api.submission_service import ProviderError
@@ -68,6 +69,12 @@ class ProblemGenerationValidationTest(unittest.TestCase):
         with self.assertRaises(ProblemGenerationError):
             _validate_generated_content(value)
 
+    def test_rejects_non_numeric_rubric_weight_as_validation_error(self) -> None:
+        value = valid_generated_content()
+        value["pseudocode_rubric"]["criteria"][0]["weight"] = "40"
+        with self.assertRaises(ProblemGenerationError):
+            _validate_generated_content(value)
+
     def test_rejects_non_portable_cpp_headers(self) -> None:
         value = valid_generated_content()
         value["reference_solutions"]["cpp"] = (
@@ -75,6 +82,12 @@ class ProblemGenerationValidationTest(unittest.TestCase):
         )
         with self.assertRaisesRegex(ProblemGenerationError, "C\\+\\+17"):
             _validate_generated_content(value)
+
+    def test_manual_problem_rejects_incomplete_statement(self) -> None:
+        value = valid_generated_content()
+        del value["statement"]["output"]
+        with self.assertRaisesRegex(ProblemGenerationError, "문제 설명"):
+            create_problem(value, "medium")
 
     def test_duplicate_id_gets_a_stable_suffix(self) -> None:
         self.assertEqual(
@@ -149,6 +162,33 @@ class ProblemGenerationValidationTest(unittest.TestCase):
     ) -> None:
         with self.assertRaisesRegex(ProviderError, "judge unavailable"):
             _validate_reference_solutions(valid_generated_content())
+
+    @patch("api.problem_generation_service._store_generated_problem")
+    @patch("api.problem_generation_service._grade_code")
+    def test_manual_problem_uses_the_same_validation_and_storage_path(
+        self, grade_code_mock, store_problem_mock
+    ) -> None:
+        grade_code_mock.return_value = {
+            "passed": True,
+            "status": "accepted",
+            "passed_tests": 5,
+            "total_tests": 5,
+        }
+        store_problem_mock.return_value = {
+            "bank_version": 8,
+            "problem": {
+                "id": "two-pointer-window",
+                "title": "두 포인터 구간",
+                "difficulty": "medium",
+            },
+        }
+        value = valid_generated_content()
+
+        result = create_problem(value, "medium")
+
+        self.assertEqual(result["bank_version"], 8)
+        self.assertEqual(grade_code_mock.call_count, 2)
+        store_problem_mock.assert_called_once_with(value, "medium")
 
 
 if __name__ == "__main__":

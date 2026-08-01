@@ -49,7 +49,6 @@ export function DojoWorkspace() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#07091b] text-[#f4f1f8]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(102,247,255,0.12),transparent_26%),radial-gradient(circle_at_0%_82%,rgba(217,70,239,0.1),transparent_26%)]" />
-      <div className="dojo-scanline pointer-events-none fixed inset-x-0 z-50 h-px bg-gradient-to-r from-transparent via-[#66f7ff]/30 to-transparent" />
       <div className="relative min-h-screen">
         <header className="flex flex-col gap-4 border-b border-[#66f7ff]/15 bg-[#07091b]/80 px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between md:px-6">
           <div className="flex items-center gap-3">

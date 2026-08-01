@@ -52,23 +52,3 @@ a {
   background: rgba(102, 247, 255, 0.25);
   color: #ffffff;
 }
-
-@keyframes dojo-scan {
-  from {
-    transform: translateY(-100%);
-  }
-  to {
-    transform: translateY(100vh);
-  }
-}
-
-.dojo-scanline {
-  animation: dojo-scan 9s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dojo-scanline {
-    animation: none;
-    display: none;
-  }
-}
