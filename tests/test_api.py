@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import api.problem_service as problem_service
 from api.index import app
+from api.admin_session import app as admin_session_app
 from api.health import app as health_app
 from api.create_problem import app as create_problem_app
 from api.generate_problem import app as generate_problem_app
@@ -11,6 +12,12 @@ from api.problem import app as problem_app
 from api.submit import app as submit_app
 from api.problem_service import load_manifest
 from api.problem_generation_service import ProblemGenerationError
+from api.problem_authorization import (
+    ProblemAuthor,
+    ProblemAuthorConfigurationError,
+    ProblemAuthorForbiddenError,
+    ProblemAuthorUnauthorizedError,
+)
 from api.submission_service import ProviderError
 
 
@@ -36,6 +43,25 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(response.json["error"]["code"], 404)
         self.assertTrue(response.json["error"]["request_id"])
 
+    @patch(
+        "api.index.verify_problem_authorization",
+        return_value=ProblemAuthor("admin-user", "admin@example.com"),
+    )
+    def test_admin_session_returns_verified_admin_email(
+        self, authorization_mock
+    ) -> None:
+        response = self.client.get(
+            "/api/admin_session",
+            headers={"Authorization": "Bearer session-token"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json,
+            {"authenticated": True, "email": "admin@example.com"},
+        )
+        authorization_mock.assert_called_once_with("Bearer session-token")
+
     def test_vercel_health_entrypoint_exports_the_same_app(self) -> None:
         self.assertIs(health_app, app)
 
@@ -48,6 +74,9 @@ class ApiTest(unittest.TestCase):
     def test_vercel_create_problem_entrypoint_exports_the_same_app(self) -> None:
         self.assertIs(create_problem_app, app)
 
+    def test_vercel_admin_session_entrypoint_exports_the_same_app(self) -> None:
+        self.assertIs(admin_session_app, app)
+
     def test_vercel_submit_entrypoint_exports_the_same_app(self) -> None:
         self.assertIs(submit_app, app)
 
@@ -56,6 +85,12 @@ class ProblemGenerationApiTest(unittest.TestCase):
     def setUp(self) -> None:
         app.config.update(TESTING=True)
         self.client = app.test_client()
+        authorization = patch(
+            "api.index.verify_problem_authorization",
+            return_value=ProblemAuthor("admin-user", "admin@example.com"),
+        )
+        self.authorization_mock = authorization.start()
+        self.addCleanup(authorization.stop)
         self.payload = {
             "prompt": "투 포인터를 연습할 수 있는 문자열 문제를 만들어 주세요.",
             "difficulty": "medium",
@@ -104,40 +139,59 @@ class ProblemGenerationApiTest(unittest.TestCase):
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.json["error"]["message"], "judge unavailable")
 
-    @patch("api.index.generate_problem")
-    @patch.dict(
-        "os.environ",
-        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": ""},
+    @patch(
+        "api.index.verify_problem_authorization",
+        side_effect=ProblemAuthorConfigurationError("Supabase 설정 누락"),
     )
-    def test_generation_requires_server_author_key_configuration(
-        self, generate_mock
+    @patch("api.index.generate_problem")
+    def test_generation_maps_auth_configuration_error(
+        self, generate_mock, _authorization_mock
     ) -> None:
-        response = self.client.post("/api/generate_problem", json=self.payload)
+        response = self.client.post(
+            "/api/generate_problem",
+            json=self.payload,
+            headers={"Authorization": "Bearer session-token"},
+        )
 
         self.assertEqual(response.status_code, 503)
         generate_mock.assert_not_called()
 
-    @patch("api.index.generate_problem")
-    @patch.dict(
-        "os.environ",
-        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": "test-author-key"},
+    @patch(
+        "api.index.verify_problem_authorization",
+        side_effect=ProblemAuthorUnauthorizedError("세션 만료"),
     )
-    def test_generation_rejects_an_invalid_author_key(self, generate_mock) -> None:
+    @patch("api.index.generate_problem")
+    def test_generation_rejects_an_invalid_session(
+        self, generate_mock, _authorization_mock
+    ) -> None:
         response = self.client.post(
             "/api/generate_problem",
             json=self.payload,
-            headers={"Authorization": "Bearer wrong-key"},
+            headers={"Authorization": "Bearer expired-session"},
         )
 
         self.assertEqual(response.status_code, 401)
         generate_mock.assert_not_called()
 
-    @patch("api.index.generate_problem")
-    @patch.dict(
-        "os.environ",
-        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": "test-author-key"},
+    @patch(
+        "api.index.verify_problem_authorization",
+        side_effect=ProblemAuthorForbiddenError("권한 없음"),
     )
-    def test_generation_accepts_the_configured_author_key(self, generate_mock) -> None:
+    @patch("api.index.generate_problem")
+    def test_generation_rejects_a_non_admin_account(
+        self, generate_mock, _authorization_mock
+    ) -> None:
+        response = self.client.post(
+            "/api/generate_problem",
+            json=self.payload,
+            headers={"Authorization": "Bearer member-session"},
+        )
+
+        self.assertEqual(response.status_code, 403)
+        generate_mock.assert_not_called()
+
+    @patch("api.index.generate_problem")
+    def test_generation_accepts_an_admin_session(self, generate_mock) -> None:
         generate_mock.return_value = {
             "bank_version": 6,
             "model": "test-model",
@@ -151,7 +205,7 @@ class ProblemGenerationApiTest(unittest.TestCase):
         response = self.client.post(
             "/api/generate_problem",
             json=self.payload,
-            headers={"Authorization": "Bearer test-author-key"},
+            headers={"Authorization": "Bearer session-token"},
         )
 
         self.assertEqual(response.status_code, 201)
@@ -162,6 +216,12 @@ class ProblemCreationApiTest(unittest.TestCase):
     def setUp(self) -> None:
         app.config.update(TESTING=True)
         self.client = app.test_client()
+        authorization = patch(
+            "api.index.verify_problem_authorization",
+            return_value=ProblemAuthor("admin-user", "admin@example.com"),
+        )
+        authorization.start()
+        self.addCleanup(authorization.stop)
         self.payload = {
             "content": {"id_suggestion": "manual-problem"},
             "difficulty": "easy",

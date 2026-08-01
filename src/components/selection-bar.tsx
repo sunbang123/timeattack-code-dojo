@@ -32,7 +32,7 @@ type SelectionBarProps = {
   currentProblemId: string;
   disabled?: boolean;
   selection: ProblemSelection;
-  onAdd: () => void;
+  onAdd?: () => void;
   onChange: (selection: ProblemSelection) => void;
 };
 
@@ -54,14 +54,16 @@ export function SelectionBar({
           <span>ALL PROBLEMS</span>
           <span className="flex items-center gap-3">
             <span>{availableProblems.length}개</span>
-            <button
-              className="rounded border border-[#66f7ff]/25 bg-[#66f7ff]/7 px-2 py-1 text-[9px] tracking-[0.1em] text-[#98fbff] transition hover:border-[#66f7ff]/50 hover:bg-[#66f7ff]/12 disabled:cursor-not-allowed disabled:opacity-30"
-              disabled={disabled}
-              onClick={onAdd}
-              type="button"
-            >
-              + 문제 추가
-            </button>
+            {onAdd ? (
+              <button
+                className="rounded border border-[#66f7ff]/25 bg-[#66f7ff]/7 px-2 py-1 text-[9px] tracking-[0.1em] text-[#98fbff] transition hover:border-[#66f7ff]/50 hover:bg-[#66f7ff]/12 disabled:cursor-not-allowed disabled:opacity-30"
+                disabled={disabled}
+                onClick={onAdd}
+                type="button"
+              >
+                + 문제 추가
+              </button>
+            ) : null}
           </span>
         </div>
         <label>

@@ -93,6 +93,11 @@ export type CreatedProblemResponse = {
   problem: ProblemSummary;
 };
 
+export type AdminSessionResponse = {
+  authenticated: true;
+  email: string;
+};
+
 export type SubmissionResult = {
   kind: "code" | "pseudocode";
   status: "accepted" | "wrong_answer" | "compile_error" | "runtime_error" | "evaluated";
@@ -168,13 +173,13 @@ export async function fetchProblem(url: string): Promise<ProblemResponse> {
 export async function generateProblem(
   prompt: string,
   difficulty: Difficulty,
-  authorToken: string,
+  accessToken: string,
 ): Promise<GeneratedProblemResponse> {
   const response = await fetch("/api/generate_problem", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(authorToken ? { Authorization: `Bearer ${authorToken}` } : {}),
+      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({ prompt, difficulty }),
   });
@@ -192,13 +197,13 @@ export async function generateProblem(
 export async function createProblem(
   content: ManualProblemContent,
   difficulty: Difficulty,
-  authorToken: string,
+  accessToken: string,
 ): Promise<CreatedProblemResponse> {
   const response = await fetch("/api/create_problem", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(authorToken ? { Authorization: `Bearer ${authorToken}` } : {}),
+      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({ content, difficulty }),
   });
@@ -210,6 +215,25 @@ export async function createProblem(
     );
   }
   return payload as CreatedProblemResponse;
+}
+
+export async function fetchAdminSession(
+  accessToken: string,
+): Promise<AdminSessionResponse> {
+  const response = await fetch("/api/admin_session", {
+    cache: "no-store",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const payload = (await response.json()) as ErrorResponse &
+    Partial<AdminSessionResponse>;
+  if (!response.ok || payload.authenticated !== true || !payload.email) {
+    throw new ProblemApiError(
+      payload.error?.message ??
+        `관리자 권한을 확인하지 못했습니다. (HTTP ${response.status})`,
+      response.status,
+    );
+  }
+  return payload as AdminSessionResponse;
 }
 
 export async function submitAnswer(

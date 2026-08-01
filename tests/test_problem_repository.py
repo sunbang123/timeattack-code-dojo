@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from api.problem_service import (
     list_problem_summaries,
@@ -7,6 +7,7 @@ from api.problem_service import (
     load_public_problem,
 )
 from api.problem_repository import (
+    claim_or_verify_problem_admin,
     clear_database_problem_cache,
     database_url,
     list_database_problem_summaries,
@@ -118,6 +119,25 @@ class PersistentProblemBankReadTest(unittest.TestCase):
 
         self.assertEqual(summaries[0]["id"], "persistent-problem")
         list_database_problem_summaries_mock.assert_called_once_with("hard")
+
+    @patch("api.problem_repository._connect")
+    def test_allowlisted_admin_email_is_bound_to_verified_user(
+        self, connect_mock
+    ) -> None:
+        connection = MagicMock()
+        cursor = MagicMock()
+        connect_mock.return_value.__enter__.return_value = connection
+        connection.cursor.return_value.__enter__.return_value = cursor
+        cursor.fetchone.return_value = {"email": "admin@example.com"}
+
+        allowed = claim_or_verify_problem_admin(
+            "3a8a10fb-2f57-4707-bd90-e24566cd449c",
+            " Admin@Example.com ",
+        )
+
+        self.assertTrue(allowed)
+        parameters = cursor.execute.call_args.args[1]
+        self.assertEqual(parameters[1], "admin@example.com")
 
 
 if __name__ == "__main__":

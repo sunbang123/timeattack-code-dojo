@@ -88,6 +88,31 @@ def clear_database_problem_cache() -> None:
         _problem_bank_cache = None
 
 
+def claim_or_verify_problem_admin(user_id: str, email: str) -> bool:
+    """Bind an allowlisted email to its first verified Supabase Auth user."""
+    normalized_email = email.strip().lower()
+    try:
+        with _connect() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE dojo.problem_admins
+                SET
+                    user_id = coalesce(user_id, %s),
+                    activated_at = coalesce(activated_at, now())
+                WHERE email = %s
+                  AND (user_id is null OR user_id = %s)
+                RETURNING email
+                """,
+                (user_id, normalized_email, user_id),
+            )
+            row = cursor.fetchone()
+    except ProblemRepositoryError:
+        raise
+    except psycopg.Error as exc:
+        raise ProblemRepositoryError("Problem admin query failed") from exc
+    return row is not None
+
+
 def _query_database_problem_bank_bundle() -> dict[str, Any]:
     """Load the public problem bank with one connection and one round trip."""
     try:

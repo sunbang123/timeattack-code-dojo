@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
 import { AnswerEditor } from "@/components/answer-editor";
+import { AdminAuthControl } from "@/components/admin-auth-control";
 import { CountdownTimer } from "@/components/countdown-timer";
 import { DiscardDialog } from "@/components/discard-dialog";
 import { ProblemGeneratorDialog } from "@/components/problem-generator-dialog";
 import { ProblemPanel } from "@/components/problem-panel";
 import { SelectionBar } from "@/components/selection-bar";
 import { SubmissionFeedback } from "@/components/submission-feedback";
+import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useSolutionAccess } from "@/hooks/use-solution-access";
 import {
   buildProblemUrl,
@@ -35,6 +37,7 @@ const defaultSelection: ProblemSelection = {
 export function DojoWorkspace() {
   const [selection, setSelection] = useState<ProblemSelection>(defaultSelection);
   const [generatorOpen, setGeneratorOpen] = useState(false);
+  const adminAuth = useAdminAuth();
   const requestUrl = buildProblemUrl(selection);
   const { data, error, isLoading, mutate } = useSWR(requestUrl, fetchProblem, {
     revalidateOnFocus: false,
@@ -71,6 +74,10 @@ export function DojoWorkspace() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <AdminAuthControl
+              auth={adminAuth}
+              onSignedOut={() => setGeneratorOpen(false)}
+            />
             {data ? (
               <CountdownTimer
                 key={`${data.problem.id}:${data.problem.version}:${data.problem.mode}:${data.problem.language}`}
@@ -91,7 +98,7 @@ export function DojoWorkspace() {
               availableProblems={data?.available_problems ?? []}
               currentProblemId={currentProblemId}
               disabled
-              onAdd={() => setGeneratorOpen(true)}
+              onAdd={adminAuth.isAdmin ? () => setGeneratorOpen(true) : undefined}
               onChange={setSelection}
               selection={selection}
             />
@@ -102,7 +109,7 @@ export function DojoWorkspace() {
             <SelectionBar
               availableProblems={[]}
               currentProblemId=""
-              onAdd={() => setGeneratorOpen(true)}
+              onAdd={adminAuth.isAdmin ? () => setGeneratorOpen(true) : undefined}
               onChange={setSelection}
               selection={selection}
             />
@@ -113,7 +120,7 @@ export function DojoWorkspace() {
             <SelectionBar
               availableProblems={data?.available_problems ?? []}
               currentProblemId={currentProblemId}
-              onAdd={() => setGeneratorOpen(true)}
+              onAdd={adminAuth.isAdmin ? () => setGeneratorOpen(true) : undefined}
               onChange={setSelection}
               selection={selection}
             />
@@ -123,16 +130,18 @@ export function DojoWorkspace() {
           <LoadedWorkspace
             key={`${data.problem.id}:${data.problem.version}:${data.problem.mode}:${data.problem.language}`}
             data={data}
+            accessToken={adminAuth.accessToken}
             generatorOpen={generatorOpen}
-            onAddProblem={() => setGeneratorOpen(true)}
+            onAddProblem={adminAuth.isAdmin ? () => setGeneratorOpen(true) : undefined}
             onCloseGenerator={() => setGeneratorOpen(false)}
             onProblemBankChanged={() => void mutate()}
             onSelectionChange={setSelection}
             selection={selection}
           />
         )}
-        {!hasLoadedWorkspace ? (
+        {!hasLoadedWorkspace && adminAuth.accessToken ? (
           <ProblemGeneratorDialog
+            accessToken={adminAuth.accessToken}
             onClose={() => setGeneratorOpen(false)}
             onCreated={(problem) => {
               setGeneratorOpen(false);
@@ -147,6 +156,7 @@ export function DojoWorkspace() {
 }
 
 function LoadedWorkspace({
+  accessToken,
   data,
   generatorOpen,
   onAddProblem,
@@ -155,9 +165,10 @@ function LoadedWorkspace({
   onSelectionChange,
   selection,
 }: {
+  accessToken: string | null;
   data: import("@/lib/problem-api").ProblemResponse;
   generatorOpen: boolean;
-  onAddProblem: () => void;
+  onAddProblem?: () => void;
   onCloseGenerator: () => void;
   onProblemBankChanged: () => void;
   onSelectionChange: (selection: ProblemSelection) => void;
@@ -283,15 +294,18 @@ function LoadedWorkspace({
         onConfirm={confirmSelection}
         open={pendingSelection !== null}
       />
-      <ProblemGeneratorDialog
-        onClose={onCloseGenerator}
-        onCreated={(problem) => {
-          onCloseGenerator();
-          onProblemBankChanged();
-          requestSelection({ ...selection, problemId: problem.id });
-        }}
-        open={generatorOpen}
-      />
+      {accessToken ? (
+        <ProblemGeneratorDialog
+          accessToken={accessToken}
+          onClose={onCloseGenerator}
+          onCreated={(problem) => {
+            onCloseGenerator();
+            onProblemBankChanged();
+            requestSelection({ ...selection, problemId: problem.id });
+          }}
+          open={generatorOpen}
+        />
+      ) : null}
     </>
   );
 }

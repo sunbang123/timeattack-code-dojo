@@ -12,6 +12,7 @@ import {
 } from "@/lib/problem-api";
 
 type ProblemGeneratorDialogProps = {
+  accessToken: string;
   open: boolean;
   onClose: () => void;
   onCreated: (problem: ProblemSummary) => void;
@@ -178,6 +179,7 @@ function buildManualContent(draft: ManualDraft): ManualProblemContent {
 }
 
 export function ProblemGeneratorDialog({
+  accessToken,
   open,
   onClose,
   onCreated,
@@ -187,14 +189,12 @@ export function ProblemGeneratorDialog({
   const [prompt, setPrompt] = useState("");
   const [manualDraft, setManualDraft] = useState(createInitialManualDraft);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
-  const [authorToken, setAuthorToken] = useState("");
   const [isWorking, setIsWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleClose = () => {
     if (isWorking) return;
     setError(null);
-    setAuthorToken("");
     onClose();
   };
 
@@ -255,18 +255,17 @@ export function ProblemGeneratorDialog({
     try {
       const result =
         authorMode === "ai"
-          ? await generateProblem(prompt.trim(), difficulty, authorToken.trim())
+          ? await generateProblem(prompt.trim(), difficulty, accessToken)
           : await createProblem(
               buildManualContent(manualDraft),
               difficulty,
-              authorToken.trim(),
+              accessToken,
             );
       if (authorMode === "ai") {
         setPrompt("");
       } else {
         setManualDraft(createInitialManualDraft());
       }
-      setAuthorToken("");
       onCreated(result.problem);
     } catch (creationError) {
       setError(
@@ -348,23 +347,6 @@ export function ProblemGeneratorDialog({
                 );
               })}
             </div>
-
-            <label className="block">
-              <span className="font-mono text-[10px] tracking-[0.16em] text-white/45">
-                관리자 키 · 배포 환경 필수
-              </span>
-              <input
-                autoComplete="off"
-                className={inputClassName}
-                onChange={(event) => setAuthorToken(event.target.value)}
-                placeholder="Vercel에 설정한 PROBLEM_AUTHOR_TOKEN"
-                type="password"
-                value={authorToken}
-              />
-              <span className="mt-1.5 block text-[10px] leading-4 text-white/30">
-                입력값은 브라우저에 저장하지 않고 이번 생성 요청에만 사용합니다.
-              </span>
-            </label>
 
             <fieldset>
               <legend className="font-mono text-[10px] tracking-[0.16em] text-white/45">
