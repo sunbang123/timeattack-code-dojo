@@ -43,9 +43,9 @@ function getTimerState(remainingSeconds: number) {
   }
   return {
     label: "TIME LEFT",
-    shell: "border-[#2cffad]/25 bg-[#2cffad]/7",
-    dot: "bg-[#2cffad]",
-    text: "text-[#7dffcc]",
+    shell: "border-[#66f7ff]/25 bg-[#66f7ff]/7",
+    dot: "bg-[#66f7ff]",
+    text: "text-[#98fbff]",
   };
 }
 

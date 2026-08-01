@@ -14,7 +14,7 @@ export function SubmissionFeedback({ error, result }: SubmissionFeedbackProps) {
       aria-live="polite"
       className={`border-t px-4 py-3 md:px-5 ${
         passed
-          ? "border-[#2cffad]/20 bg-[#2cffad]/[0.055]"
+          ? "border-[#66f7ff]/20 bg-[#66f7ff]/[0.055]"
           : "border-[#ff7a59]/20 bg-[#ff7a59]/[0.055]"
       }`}
     >
@@ -23,7 +23,7 @@ export function SubmissionFeedback({ error, result }: SubmissionFeedbackProps) {
       ) : result ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className={`text-sm font-semibold ${passed ? "text-[#7dffcc]" : "text-[#ffad96]"}`}>
+            <p className={`text-sm font-semibold ${passed ? "text-[#98fbff]" : "text-[#ffad96]"}`}>
               {passed ? "통과했습니다" : "조금 더 다듬어 보세요"}
             </p>
             <p className="mt-1 text-xs leading-5 text-white/55">{result.feedback}</p>

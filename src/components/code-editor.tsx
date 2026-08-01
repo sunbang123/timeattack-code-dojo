@@ -39,16 +39,16 @@ function configureTheme(monaco: Monaco) {
     inherit: true,
     rules: [
       { token: "comment", foreground: "718078", fontStyle: "italic" },
-      { token: "keyword", foreground: "65E6B6" },
-      { token: "number", foreground: "FF9C7E" },
+      { token: "keyword", foreground: "66F7FF" },
+      { token: "number", foreground: "E879F9" },
       { token: "string", foreground: "D8E67B" },
     ],
     colors: {
-      "editor.background": "#090E12",
+      "editor.background": "#080C1D",
       "editor.foreground": "#E9E6DD",
       "editor.lineHighlightBackground": "#10181D",
-      "editor.selectionBackground": "#245C4A88",
-      "editorCursor.foreground": "#2CFFAD",
+      "editor.selectionBackground": "#174F6988",
+      "editorCursor.foreground": "#66F7FF",
       "editorLineNumber.foreground": "#3F4C50",
       "editorLineNumber.activeForeground": "#9EB0AA",
       "editorIndentGuide.background1": "#1B272B",
@@ -59,9 +59,9 @@ function configureTheme(monaco: Monaco) {
 
 function EditorLoading() {
   return (
-    <div className="grid h-full min-h-80 place-items-center bg-[#090e12]" aria-live="polite">
+    <div className="grid h-full min-h-80 place-items-center bg-[#080c1d]" aria-live="polite">
       <div className="flex items-center gap-3 font-mono text-xs text-white/45">
-        <span className="size-2 animate-pulse rounded-full bg-[#2cffad]" />
+        <span className="size-2 animate-pulse rounded-full bg-[#66f7ff]" />
         MONACO EDITOR LOADING
       </div>
     </div>
