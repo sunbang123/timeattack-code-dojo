@@ -6,7 +6,7 @@ type ProblemPanelProps = {
 
 export function ProblemPanel({ problem }: ProblemPanelProps) {
   return (
-    <article className="h-full overflow-y-auto bg-[#0c1216] px-5 py-6 md:px-7 md:py-8">
+    <article className="h-full overflow-y-auto bg-[#0b1024]/95 px-5 py-6 md:px-7 md:py-8">
       <div className="mb-8 flex flex-wrap items-center gap-2">
         <span className="rounded-full border border-[#ff7a59]/25 bg-[#ff7a59]/8 px-2.5 py-1 font-mono text-[10px] tracking-wider text-[#ffad96]">
           {problem.difficulty.toUpperCase()}
@@ -18,15 +18,15 @@ export function ProblemPanel({ problem }: ProblemPanelProps) {
         ))}
       </div>
 
-      <p className="mb-3 font-mono text-[10px] tracking-[0.2em] text-[#2cffad]">
+      <p className="mb-3 font-mono text-[10px] tracking-[0.2em] text-[#66f7ff]">
         PROBLEM {problem.id} · V{problem.version}
       </p>
       <h1 className="text-3xl font-semibold tracking-[-0.04em] text-[#f4f1e8] md:text-4xl">{problem.title}</h1>
       <p className="mt-4 max-w-2xl text-base leading-7 text-white/58">{problem.statement.description}</p>
 
       {problem.prompt && (
-        <aside className="mt-7 rounded-xl border border-[#2cffad]/20 bg-[#2cffad]/[0.055] p-4">
-          <p className="mb-1 font-mono text-[10px] tracking-[0.16em] text-[#2cffad]">PSEUDOCODE GUIDE</p>
+        <aside className="mt-7 rounded-xl border border-[#66f7ff]/20 bg-[#66f7ff]/[0.055] p-4">
+          <p className="mb-1 font-mono text-[10px] tracking-[0.16em] text-[#66f7ff]">PSEUDOCODE GUIDE</p>
           <p className="text-sm leading-6 text-white/65">{problem.prompt}</p>
         </aside>
       )}
@@ -42,7 +42,7 @@ export function ProblemPanel({ problem }: ProblemPanelProps) {
           <ul className="grid gap-2">
             {problem.statement.constraints.map((constraint) => (
               <li key={constraint} className="flex gap-2">
-                <span aria-hidden="true" className="text-[#2cffad]">›</span>
+                <span aria-hidden="true" className="text-[#66f7ff]">›</span>
                 <span>{constraint}</span>
               </li>
             ))}

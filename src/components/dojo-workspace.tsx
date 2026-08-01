@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
@@ -46,17 +47,27 @@ export function DojoWorkspace() {
   );
 
   return (
-    <main className="min-h-screen bg-[#070b0f] text-[#f4f1e8]">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(44,255,173,0.08),transparent_24%),radial-gradient(circle_at_0%_82%,rgba(255,91,52,0.07),transparent_22%)]" />
+    <main className="min-h-screen overflow-hidden bg-[#07091b] text-[#f4f1f8]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(102,247,255,0.12),transparent_26%),radial-gradient(circle_at_0%_82%,rgba(217,70,239,0.1),transparent_26%)]" />
       <div className="relative min-h-screen">
-        <header className="flex flex-col gap-4 border-b border-white/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <header className="flex flex-col gap-4 border-b border-[#66f7ff]/15 bg-[#07091b]/80 px-4 py-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between md:px-6">
           <div className="flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-full border border-[#2cffad]/50 bg-[#2cffad]/10 font-mono text-sm text-[#2cffad]">
-              T/
+            <span className="relative size-12 shrink-0 overflow-hidden rounded-[14px] border border-[#66f7ff]/45 bg-[#0b1230] shadow-[0_0_26px_rgba(102,247,255,0.18)] sm:size-14">
+              <Image
+                alt="Timeattack Code Dojo"
+                className="object-cover"
+                fill
+                priority
+                sizes="56px"
+                src="/timeattack-code-dojo-icon.png"
+              />
             </span>
             <div>
-              <p className="font-mono text-xs tracking-[0.16em] text-white/80">TIMEATTACK CODE DOJO</p>
-              <p className="mt-0.5 text-[11px] text-white/35">Pressure makes patterns visible.</p>
+              <div className="flex items-center gap-2">
+                <p className="font-mono text-xs font-semibold tracking-[0.16em] text-white/90">TIMEATTACK CODE DOJO</p>
+                <span className="hidden rounded border border-[#d946ef]/30 bg-[#d946ef]/10 px-1.5 py-0.5 font-mono text-[8px] tracking-wider text-[#eda2ff] sm:inline">ARENA 01</span>
+              </div>
+              <p className="mt-1 text-[11px] text-white/42">제한 시간 안에, 끝까지 푼다.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -67,7 +78,10 @@ export function DojoWorkspace() {
               />
             ) : null}
             <span className="hidden font-mono text-[10px] tracking-wider text-white/30 sm:inline">BANK V{data?.bank_version ?? "—"}</span>
-            <span className="rounded-full border border-white/10 px-3 py-1.5 font-mono text-[10px] tracking-wider text-white/45">LIVE · TRAINING</span>
+            <span className="flex items-center gap-2 rounded-full border border-[#66f7ff]/20 bg-[#66f7ff]/5 px-3 py-1.5 font-mono text-[10px] tracking-wider text-[#98fbff]/70">
+              <span className="size-1.5 animate-pulse rounded-full bg-[#66f7ff]" />
+              LIVE · TRAINING
+            </span>
           </div>
         </header>
 
@@ -247,7 +261,7 @@ function LoadedWorkspace({
         <div className="min-h-[34rem] overflow-hidden border-b border-white/10 lg:min-h-0 lg:border-b-0 lg:border-r">
           <ProblemPanel problem={data.problem} />
         </div>
-        <section className="flex min-h-[38rem] flex-col bg-[#090e12] lg:min-h-0" aria-label="답안 작성">
+        <section className="flex min-h-[38rem] flex-col bg-[#080c1d] lg:min-h-0" aria-label="답안 작성">
           <EditorHeader isDirty={isDirty} problem={data.problem} />
           <div className="min-h-0 flex-1 overflow-hidden">
             <AnswerEditor onChange={handleAnswerChange} problem={data.problem} value={answer} />
@@ -293,7 +307,7 @@ function EditorHeader({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 md:px-5">
       <div className="flex items-center gap-2 font-mono text-[10px] tracking-wider text-white/35">
-        <span className="text-[#2cffad]">{problem.language === "python" ? "PY" : "CPP"}</span>
+        <span className="text-[#66f7ff]">{problem.language === "python" ? "PY" : "CPP"}</span>
         <span>/</span>
         <span>{problem.mode.toUpperCase()}</span>
         <span>/</span>
@@ -344,7 +358,7 @@ function EditorFooter({
           {solutionAvailable ? `정답보기 · 오답 ${wrongAttemptCount}회` : "정답보기 · 1회 오답 후"}
         </button>
         <button
-          className="rounded-lg bg-[#2cffad] px-4 py-2 text-xs font-semibold text-[#03140e] transition hover:bg-[#72ffcf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9affdc] disabled:cursor-not-allowed disabled:bg-white/[0.04] disabled:text-white/25"
+          className="rounded-lg bg-[#66f7ff] px-4 py-2 text-xs font-semibold text-[#031316] shadow-[0_0_24px_rgba(102,247,255,0.12)] transition hover:bg-[#9ffaff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b9fdff] disabled:cursor-not-allowed disabled:bg-white/[0.04] disabled:text-white/25"
           disabled={disabled}
           onClick={onSubmit}
           type="button"
@@ -365,7 +379,7 @@ function WorkspaceLoading() {
         <div className="mt-5 h-3 w-full rounded bg-white/5" />
         <div className="mt-3 h-3 w-4/5 rounded bg-white/5" />
       </div>
-      <div className="grid place-items-center bg-[#090e12] font-mono text-xs text-white/30">LOADING PROBLEM DATA</div>
+      <div className="grid place-items-center bg-[#080c1d] font-mono text-xs text-white/30">LOADING PROBLEM DATA</div>
     </div>
   );
 }
@@ -377,7 +391,7 @@ function WorkspaceError({ message, onRetry }: { message: string; onRetry: () => 
         <span className="mx-auto grid size-12 place-items-center rounded-full border border-[#ff7a59]/30 bg-[#ff7a59]/10 font-mono text-[#ff9b80]">!</span>
         <h1 className="mt-5 text-2xl font-semibold">문제를 불러오지 못했어요</h1>
         <p className="mt-2 text-sm leading-6 text-white/45">{message}</p>
-        <button className="mt-6 rounded-lg bg-[#2cffad] px-5 py-3 text-sm font-semibold text-[#03140e] transition hover:bg-[#72ffcf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9affdc]" onClick={onRetry} type="button">
+        <button className="mt-6 rounded-lg bg-[#66f7ff] px-5 py-3 text-sm font-semibold text-[#031316] transition hover:bg-[#9ffaff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b9fdff]" onClick={onRetry} type="button">
           다시 시도
         </button>
       </div>

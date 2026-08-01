@@ -58,6 +58,41 @@ export type GeneratedProblemResponse = {
   problem: ProblemSummary;
 };
 
+export type ProblemSourcePair = {
+  python: string;
+  cpp: string;
+};
+
+export type ManualProblemContent = {
+  id_suggestion: string;
+  title: string;
+  tags: string[];
+  statement: ProblemPayload["statement"];
+  examples: ProblemExample[];
+  beginner_prompt: string;
+  intermediate_skeletons: ProblemSourcePair;
+  expert_templates: ProblemSourcePair;
+  pseudocode_rubric: {
+    pass_score: number;
+    criteria: {
+      id: string;
+      description: string;
+      weight: number;
+    }[];
+  };
+  reference_solutions: ProblemSourcePair;
+  hidden_tests: {
+    name: string;
+    input: string;
+    expected_output: string;
+  }[];
+};
+
+export type CreatedProblemResponse = {
+  bank_version: number;
+  problem: ProblemSummary;
+};
+
 export type SubmissionResult = {
   kind: "code" | "pseudocode";
   status: "accepted" | "wrong_answer" | "compile_error" | "runtime_error" | "evaluated";
@@ -133,10 +168,14 @@ export async function fetchProblem(url: string): Promise<ProblemResponse> {
 export async function generateProblem(
   prompt: string,
   difficulty: Difficulty,
+  authorToken: string,
 ): Promise<GeneratedProblemResponse> {
   const response = await fetch("/api/generate_problem", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(authorToken ? { Authorization: `Bearer ${authorToken}` } : {}),
+    },
     body: JSON.stringify({ prompt, difficulty }),
   });
   const payload = (await response.json()) as ErrorResponse &
@@ -148,6 +187,29 @@ export async function generateProblem(
     );
   }
   return payload as GeneratedProblemResponse;
+}
+
+export async function createProblem(
+  content: ManualProblemContent,
+  difficulty: Difficulty,
+  authorToken: string,
+): Promise<CreatedProblemResponse> {
+  const response = await fetch("/api/create_problem", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(authorToken ? { Authorization: `Bearer ${authorToken}` } : {}),
+    },
+    body: JSON.stringify({ content, difficulty }),
+  });
+  const payload = (await response.json()) as ErrorResponse & Partial<CreatedProblemResponse>;
+  if (!response.ok || !payload.problem || typeof payload.bank_version !== "number") {
+    throw new ProblemApiError(
+      payload.error?.message ?? `문제를 저장하지 못했습니다. (HTTP ${response.status})`,
+      response.status,
+    );
+  }
+  return payload as CreatedProblemResponse;
 }
 
 export async function submitAnswer(

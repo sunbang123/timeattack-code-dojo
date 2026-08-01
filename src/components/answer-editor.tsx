@@ -18,7 +18,7 @@ export function AnswerEditor({ problem, value, onChange }: AnswerEditorProps) {
     return (
       <textarea
         aria-label="의사코드 답안"
-        className="h-full min-h-96 w-full resize-none bg-[#090e12] p-5 font-mono text-sm leading-7 text-[#e9e6dd] outline-none placeholder:text-white/25 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2cffad]/70"
+        className="h-full min-h-96 w-full resize-none bg-[#080c1d] p-5 font-mono text-sm leading-7 text-[#e9e6dd] outline-none placeholder:text-white/25 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#66f7ff]/70"
         onChange={(event) => onChange(event.target.value)}
         placeholder="예: 두 정수를 읽는다 → 두 값을 더한다 → 결과를 출력한다"
         spellCheck={false}
@@ -35,7 +35,7 @@ export function AnswerEditor({ problem, value, onChange }: AnswerEditorProps) {
     return (
       <textarea
         aria-label={`${problem.language === "python" ? "Python" : "C++"} 코드 답안`}
-        className="h-full min-h-[32rem] w-full resize-y bg-[#090e12] p-5 font-mono text-[13px] leading-6 text-[#e9e6dd] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2cffad]/70"
+        className="h-full min-h-[32rem] w-full resize-y bg-[#080c1d] p-5 font-mono text-[13px] leading-6 text-[#e9e6dd] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#66f7ff]/70"
         onChange={(event) => onChange(event.target.value)}
         spellCheck={false}
         value={value}

@@ -12,9 +12,12 @@ from typing import Any
 from api.problem_service import (
     DIFFICULTIES,
     PROBLEM_BANK_ROOT,
-    load_manifest,
-    load_private_problem,
-    load_public_problem,
+    clear_local_problem_cache,
+)
+from api.problem_repository import (
+    ProblemRepositoryError,
+    database_enabled,
+    store_database_problem,
 )
 from api.submission_service import ProviderError, _grade_code, _request_json
 
@@ -176,9 +179,21 @@ def _validate_generated_content(value: Any) -> dict[str, Any]:
         raise ProblemGenerationError("중수용 코드에는 TODO가 필요합니다.")
     rubric = value["pseudocode_rubric"]
     criteria = rubric.get("criteria") if isinstance(rubric, dict) else None
-    if not isinstance(criteria, list) or len(criteria) < 3 or sum(
-        item.get("weight", 0) for item in criteria if isinstance(item, dict)
-    ) != 100:
+    weights = (
+        [item.get("weight") for item in criteria if isinstance(item, dict)]
+        if isinstance(criteria, list)
+        else []
+    )
+    if (
+        not isinstance(criteria, list)
+        or len(criteria) < 3
+        or len(weights) != len(criteria)
+        or not all(
+            isinstance(weight, int) and not isinstance(weight, bool)
+            for weight in weights
+        )
+        or sum(weights) != 100
+    ):
         raise ProblemGenerationError("생성된 채점 기준의 가중치 합은 100이어야 합니다.")
     if not all(
         isinstance(item, dict) and _NAME_PATTERN.fullmatch(str(item.get("id", "")))
@@ -190,6 +205,77 @@ def _validate_generated_content(value: Any) -> dict[str, Any]:
     if not isinstance(value["hidden_tests"], list) or len(value["hidden_tests"]) < 3:
         raise ProblemGenerationError("비공개 테스트가 세 개 이상 필요합니다.")
     return value
+
+
+def _validate_manual_content(value: Any) -> dict[str, Any]:
+    content = _validate_generated_content(value)
+    title = content["title"]
+    if len(title) > 80:
+        raise ProblemGenerationError("문제 제목은 80자 이하로 입력해 주세요.")
+    if len(content["tags"]) > 6:
+        raise ProblemGenerationError("문제 태그는 6개 이하로 입력해 주세요.")
+
+    statement = content["statement"]
+    required_statement_fields = {"summary", "description", "input", "output", "constraints"}
+    if set(statement) != required_statement_fields:
+        raise ProblemGenerationError("문제 설명의 필드 구성이 올바르지 않습니다.")
+    for field in ("summary", "description", "input", "output"):
+        _require_string(statement[field], f"설명.{field}")
+    constraints = statement["constraints"]
+    if (
+        not isinstance(constraints, list)
+        or not 1 <= len(constraints) <= 8
+        or not all(isinstance(item, str) and item.strip() for item in constraints)
+    ):
+        raise ProblemGenerationError("제약 조건은 1개 이상 8개 이하로 입력해 주세요.")
+
+    examples = content["examples"]
+    if len(examples) > 4 or not all(
+        isinstance(example, dict)
+        and set(example) == {"input", "output", "explanation"}
+        and isinstance(example["input"], str)
+        and isinstance(example["output"], str)
+        and isinstance(example["explanation"], str)
+        and example["explanation"].strip()
+        for example in examples
+    ):
+        raise ProblemGenerationError("공개 예시의 필드 구성이 올바르지 않습니다.")
+
+    _require_string(content["beginner_prompt"], "초급자 안내")
+    rubric = content["pseudocode_rubric"]
+    pass_score = rubric.get("pass_score") if isinstance(rubric, dict) else None
+    criteria = rubric.get("criteria") if isinstance(rubric, dict) else None
+    if (
+        set(rubric) != {"pass_score", "criteria"}
+        or not isinstance(pass_score, int)
+        or isinstance(pass_score, bool)
+        or not 1 <= pass_score <= 100
+        or not 3 <= len(criteria) <= 6
+        or not all(
+            set(item) == {"id", "description", "weight"}
+            and isinstance(item["description"], str)
+            and item["description"].strip()
+            and isinstance(item["weight"], int)
+            and not isinstance(item["weight"], bool)
+            and 1 <= item["weight"] <= 100
+            for item in criteria
+        )
+    ):
+        raise ProblemGenerationError("의사코드 채점 기준이 올바르지 않습니다.")
+
+    hidden_tests = content["hidden_tests"]
+    if len(hidden_tests) > 8 or not all(
+        isinstance(test, dict)
+        and set(test) == {"name", "input", "expected_output"}
+        and _NAME_PATTERN.fullmatch(str(test["name"]))
+        and isinstance(test["input"], str)
+        and isinstance(test["expected_output"], str)
+        for test in hidden_tests
+    ):
+        raise ProblemGenerationError("비공개 테스트의 필드 구성이 올바르지 않습니다.")
+    if len({test["name"] for test in hidden_tests}) != len(hidden_tests):
+        raise ProblemGenerationError("비공개 테스트 이름은 서로 달라야 합니다.")
+    return content
 
 
 def _reference_tests(content: dict[str, Any]) -> list[dict[str, str]]:
@@ -301,48 +387,71 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
     temporary_path.replace(path)
 
 
+def _build_problem_documents(
+    content: dict[str, Any], difficulty: str, problem_id: str
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    beginner_time, intermediate_time, expert_time = _TIME_LIMITS[difficulty]
+    public_problem = {
+        "schema_version": "1.0.0",
+        "id": problem_id,
+        "version": 1,
+        "title": content["title"].strip(),
+        "difficulty": difficulty,
+        "tags": list(dict.fromkeys(tag.strip() for tag in content["tags"] if tag.strip())),
+        "supported_languages": ["python", "cpp"],
+        "statement": content["statement"],
+        "examples": content["examples"],
+        "modes": {
+            "beginner": {
+                "time_limit_seconds": beginner_time,
+                "answer_format": "pseudocode",
+                "prompt": content["beginner_prompt"],
+            },
+            "intermediate": {
+                "time_limit_seconds": intermediate_time,
+                "answer_format": "code",
+                "skeletons": content["intermediate_skeletons"],
+            },
+            "expert": {
+                "time_limit_seconds": expert_time,
+                "answer_format": "code",
+                "starter_templates": content["expert_templates"],
+            },
+        },
+    }
+    private_problem = {
+        "schema_version": "1.0.0",
+        "problem_id": problem_id,
+        "version": 1,
+        "pseudocode_rubric": content["pseudocode_rubric"],
+        "reference_solutions": content["reference_solutions"],
+        "hidden_tests": content["hidden_tests"],
+    }
+    return public_problem, private_problem
+
+
 def _store_generated_problem(content: dict[str, Any], difficulty: str) -> dict[str, Any]:
+    if database_enabled():
+        try:
+            return store_database_problem(
+                content["id_suggestion"],
+                difficulty,
+                lambda problem_id: _build_problem_documents(
+                    content, difficulty, problem_id
+                ),
+            )
+        except ProblemRepositoryError as exc:
+            raise ProblemGenerationError(
+                "생성한 문제를 영구 문제은행에 저장하지 못했습니다."
+            ) from exc
+
     with _WRITE_LOCK:
         manifest = json.loads((PROBLEM_BANK_ROOT / "manifest.json").read_text(encoding="utf-8"))
         existing_ids = {entry["id"] for entry in manifest["problems"]}
         problem_id = _unique_problem_id(content["id_suggestion"], existing_ids)
-        beginner_time, intermediate_time, expert_time = _TIME_LIMITS[difficulty]
-        public_problem = {
-            "schema_version": "1.0.0",
-            "id": problem_id,
-            "version": 1,
-            "title": content["title"].strip(),
-            "difficulty": difficulty,
-            "tags": list(dict.fromkeys(tag.strip() for tag in content["tags"] if tag.strip())),
-            "supported_languages": ["python", "cpp"],
-            "statement": content["statement"],
-            "examples": content["examples"],
-            "modes": {
-                "beginner": {
-                    "time_limit_seconds": beginner_time,
-                    "answer_format": "pseudocode",
-                    "prompt": content["beginner_prompt"],
-                },
-                "intermediate": {
-                    "time_limit_seconds": intermediate_time,
-                    "answer_format": "code",
-                    "skeletons": content["intermediate_skeletons"],
-                },
-                "expert": {
-                    "time_limit_seconds": expert_time,
-                    "answer_format": "code",
-                    "starter_templates": content["expert_templates"],
-                },
-            },
-        }
-        private_problem = {
-            "schema_version": "1.0.0",
-            "problem_id": problem_id,
-            "version": 1,
-            "pseudocode_rubric": content["pseudocode_rubric"],
-            "reference_solutions": content["reference_solutions"],
-            "hidden_tests": content["hidden_tests"],
-        }
+        public_problem, private_problem = _build_problem_documents(
+            content, difficulty, problem_id
+        )
         next_manifest = {
             **manifest,
             "bank_version": int(manifest["bank_version"]) + 1,
@@ -362,9 +471,7 @@ def _store_generated_problem(content: dict[str, Any], difficulty: str) -> dict[s
             public_path.unlink(missing_ok=True)
             private_path.unlink(missing_ok=True)
             raise ProblemGenerationError("생성된 문제를 문제은행에 저장하지 못했습니다.") from exc
-        load_manifest.cache_clear()
-        load_private_problem.cache_clear()
-        load_public_problem.cache_clear()
+        clear_local_problem_cache()
         return {
             "bank_version": next_manifest["bank_version"],
             "problem": {
@@ -386,3 +493,11 @@ def generate_problem(prompt: str, difficulty: str) -> dict[str, Any]:
     _validate_reference_solutions(content)
     stored = _store_generated_problem(content, difficulty)
     return {**stored, "model": model}
+
+
+def create_problem(content: Any, difficulty: Any) -> dict[str, Any]:
+    if difficulty not in DIFFICULTIES:
+        raise ProblemGenerationError("난이도는 easy, medium, hard 중 하나여야 합니다.")
+    validated_content = _validate_manual_content(content)
+    _validate_reference_solutions(validated_content)
+    return _store_generated_problem(validated_content, difficulty)

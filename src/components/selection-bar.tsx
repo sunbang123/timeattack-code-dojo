@@ -25,7 +25,7 @@ const difficultyLabels: Record<ProblemSummary["difficulty"], string> = {
 };
 
 const segmentClass =
-  "rounded-lg border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2cffad]/70";
+  "rounded-lg border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#66f7ff]/70";
 
 type SelectionBarProps = {
   availableProblems: ProblemSummary[];
@@ -47,7 +47,7 @@ export function SelectionBar({
   return (
     <section
       aria-label="문제 설정"
-      className="grid gap-5 border-b border-white/10 bg-[#0a0f13]/95 px-4 py-4 backdrop-blur md:grid-cols-[minmax(0,1.35fr)_1.35fr_0.75fr] md:px-6"
+      className="grid gap-5 border-b border-[#66f7ff]/12 bg-[#090d20]/92 px-4 py-4 backdrop-blur-xl md:grid-cols-[minmax(0,1.35fr)_1.35fr_0.75fr] md:px-6"
     >
       <div>
         <div className="mb-2 flex items-center justify-between font-mono text-[10px] tracking-[0.18em] text-white/35">
@@ -55,7 +55,7 @@ export function SelectionBar({
           <span className="flex items-center gap-3">
             <span>{availableProblems.length}개</span>
             <button
-              className="rounded border border-[#2cffad]/25 bg-[#2cffad]/7 px-2 py-1 text-[9px] tracking-[0.1em] text-[#7dffcc] transition hover:border-[#2cffad]/50 hover:bg-[#2cffad]/12 disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded border border-[#66f7ff]/25 bg-[#66f7ff]/7 px-2 py-1 text-[9px] tracking-[0.1em] text-[#98fbff] transition hover:border-[#66f7ff]/50 hover:bg-[#66f7ff]/12 disabled:cursor-not-allowed disabled:opacity-30"
               disabled={disabled}
               onClick={onAdd}
               type="button"
@@ -67,7 +67,7 @@ export function SelectionBar({
         <label>
           <span className="sr-only">문제 선택</span>
           <select
-            className="h-[58px] w-full rounded-lg border border-white/10 bg-[#10171c] px-3 text-sm text-white/80 outline-none transition focus:border-[#2cffad]/50 focus:ring-2 focus:ring-[#2cffad]/20 disabled:opacity-50"
+            className="h-[58px] w-full rounded-lg border border-white/10 bg-[#0d1329] px-3 text-sm text-white/80 outline-none transition focus:border-[#66f7ff]/50 focus:ring-2 focus:ring-[#66f7ff]/20 disabled:opacity-50"
             disabled={disabled || availableProblems.length === 0}
             onChange={(event) =>
               onChange({ ...selection, problemId: event.target.value })
@@ -94,7 +94,7 @@ export function SelectionBar({
                 aria-pressed={active}
                 className={`${segmentClass} ${
                   active
-                    ? "border-[#2cffad]/50 bg-[#2cffad]/10 text-[#7dffcc]"
+                    ? "border-[#66f7ff]/50 bg-[#66f7ff]/10 text-[#98fbff]"
                     : "border-white/8 bg-white/[0.025] text-white/45 hover:border-white/20 hover:text-white/75"
                 }`}
                 onClick={() =>

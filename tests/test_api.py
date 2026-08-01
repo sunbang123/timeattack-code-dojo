@@ -5,6 +5,7 @@ from unittest.mock import patch
 import api.problem_service as problem_service
 from api.index import app
 from api.health import app as health_app
+from api.create_problem import app as create_problem_app
 from api.generate_problem import app as generate_problem_app
 from api.problem import app as problem_app
 from api.submit import app as submit_app
@@ -43,6 +44,9 @@ class ApiTest(unittest.TestCase):
 
     def test_vercel_generate_problem_entrypoint_exports_the_same_app(self) -> None:
         self.assertIs(generate_problem_app, app)
+
+    def test_vercel_create_problem_entrypoint_exports_the_same_app(self) -> None:
+        self.assertIs(create_problem_app, app)
 
     def test_vercel_submit_entrypoint_exports_the_same_app(self) -> None:
         self.assertIs(submit_app, app)
@@ -99,6 +103,106 @@ class ProblemGenerationApiTest(unittest.TestCase):
         response = self.client.post("/api/generate_problem", json=self.payload)
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.json["error"]["message"], "judge unavailable")
+
+    @patch("api.index.generate_problem")
+    @patch.dict(
+        "os.environ",
+        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": ""},
+    )
+    def test_generation_requires_server_author_key_configuration(
+        self, generate_mock
+    ) -> None:
+        response = self.client.post("/api/generate_problem", json=self.payload)
+
+        self.assertEqual(response.status_code, 503)
+        generate_mock.assert_not_called()
+
+    @patch("api.index.generate_problem")
+    @patch.dict(
+        "os.environ",
+        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": "test-author-key"},
+    )
+    def test_generation_rejects_an_invalid_author_key(self, generate_mock) -> None:
+        response = self.client.post(
+            "/api/generate_problem",
+            json=self.payload,
+            headers={"Authorization": "Bearer wrong-key"},
+        )
+
+        self.assertEqual(response.status_code, 401)
+        generate_mock.assert_not_called()
+
+    @patch("api.index.generate_problem")
+    @patch.dict(
+        "os.environ",
+        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": "test-author-key"},
+    )
+    def test_generation_accepts_the_configured_author_key(self, generate_mock) -> None:
+        generate_mock.return_value = {
+            "bank_version": 6,
+            "model": "test-model",
+            "problem": {
+                "id": "authorized-problem",
+                "title": "Authorized problem",
+                "difficulty": "medium",
+            },
+        }
+
+        response = self.client.post(
+            "/api/generate_problem",
+            json=self.payload,
+            headers={"Authorization": "Bearer test-author-key"},
+        )
+
+        self.assertEqual(response.status_code, 201)
+        generate_mock.assert_called_once()
+
+
+class ProblemCreationApiTest(unittest.TestCase):
+    def setUp(self) -> None:
+        app.config.update(TESTING=True)
+        self.client = app.test_client()
+        self.payload = {
+            "content": {"id_suggestion": "manual-problem"},
+            "difficulty": "easy",
+        }
+
+    @patch("api.index.create_problem")
+    def test_manual_creation_returns_created_problem(self, create_mock) -> None:
+        create_mock.return_value = {
+            "bank_version": 6,
+            "problem": {
+                "id": "manual-problem",
+                "title": "직접 만든 문제",
+                "difficulty": "easy",
+            },
+        }
+
+        response = self.client.post("/api/create_problem", json=self.payload)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json["problem"]["id"], "manual-problem")
+        create_mock.assert_called_once_with(self.payload["content"], "easy")
+
+    def test_manual_creation_rejects_unknown_fields(self) -> None:
+        response = self.client.post(
+            "/api/create_problem", json={**self.payload, "debug": True}
+        )
+        self.assertEqual(response.status_code, 400)
+
+    @patch(
+        "api.index.create_problem",
+        side_effect=ProblemGenerationError("입력한 문제 데이터가 올바르지 않습니다."),
+    )
+    def test_manual_creation_maps_validation_error_to_bad_request(
+        self, _create_mock
+    ) -> None:
+        response = self.client.post("/api/create_problem", json=self.payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json["error"]["message"],
+            "입력한 문제 데이터가 올바르지 않습니다.",
+        )
 
 
 class SubmissionApiTest(unittest.TestCase):
