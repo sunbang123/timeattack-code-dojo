@@ -8,6 +8,8 @@ uses PostgreSQL instead.
 from __future__ import annotations
 
 import os
+import threading
+import time
 from collections.abc import Callable
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -24,6 +26,11 @@ except ImportError:  # pragma: no cover - exercised only before dependencies ins
 
 class ProblemRepositoryError(RuntimeError):
     """The configured persistent problem repository is unavailable."""
+
+
+_DEFAULT_READ_CACHE_SECONDS = 10.0
+_problem_bank_cache_lock = threading.Lock()
+_problem_bank_cache: tuple[float, dict[str, Any]] | None = None
 
 
 def database_url() -> str | None:
@@ -65,56 +72,116 @@ def _connect():
         raise ProblemRepositoryError("PostgreSQL connection failed") from exc
 
 
-def load_database_manifest() -> dict[str, Any]:
+def _read_cache_seconds() -> float:
+    raw_value = os.getenv("PROBLEM_READ_CACHE_SECONDS", "").strip()
+    if not raw_value:
+        return _DEFAULT_READ_CACHE_SECONDS
+    try:
+        return max(0.0, min(float(raw_value), 60.0))
+    except ValueError:
+        return _DEFAULT_READ_CACHE_SECONDS
+
+
+def clear_database_problem_cache() -> None:
+    global _problem_bank_cache
+    with _problem_bank_cache_lock:
+        _problem_bank_cache = None
+
+
+def _query_database_problem_bank_bundle() -> dict[str, Any]:
+    """Load the public problem bank with one connection and one round trip."""
     try:
         with _connect() as connection, connection.cursor() as cursor:
             cursor.execute(
-                "SELECT bank_version FROM dojo.problem_bank_state WHERE singleton = true"
-            )
-            state = cursor.fetchone()
-            cursor.execute(
                 """
-                SELECT id, difficulty, version
-                FROM dojo.problems
-                ORDER BY sort_order, id
+                SELECT
+                    state.bank_version,
+                    problem.id,
+                    problem.version,
+                    problem.difficulty,
+                    problem.title,
+                    problem.public_data
+                FROM dojo.problem_bank_state AS state
+                LEFT JOIN dojo.problems AS problem ON true
+                WHERE state.singleton = true
+                ORDER BY problem.sort_order NULLS LAST, problem.id
                 """
-            )
-            problems = cursor.fetchall()
-    except ProblemRepositoryError:
-        raise
-    except psycopg.Error as exc:
-        raise ProblemRepositoryError("Problem manifest query failed") from exc
-    if state is None:
-        raise ProblemRepositoryError("Problem bank state is missing")
-    return {
-        "schema_version": "1.0.0",
-        "bank_version": int(state["bank_version"]),
-        "problems": [dict(problem) for problem in problems],
-    }
-
-
-def list_database_problem_summaries(
-    difficulty: str | None = None,
-) -> list[dict[str, Any]]:
-    try:
-        with _connect() as connection, connection.cursor() as cursor:
-            where_clause = "" if difficulty is None else "WHERE difficulty = %s"
-            parameters = () if difficulty is None else (difficulty,)
-            cursor.execute(
-                f"""
-                SELECT id, title, difficulty
-                FROM dojo.problems
-                {where_clause}
-                ORDER BY sort_order, id
-                """,
-                parameters,
             )
             rows = cursor.fetchall()
     except ProblemRepositoryError:
         raise
     except psycopg.Error as exc:
-        raise ProblemRepositoryError("Problem summary query failed") from exc
-    return [dict(row) for row in rows]
+        raise ProblemRepositoryError("Problem bank bundle query failed") from exc
+    if not rows:
+        raise ProblemRepositoryError("Problem bank state is missing")
+
+    entries: list[dict[str, Any]] = []
+    summaries: list[dict[str, Any]] = []
+    public_problems: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        problem_id = row["id"]
+        if problem_id is None:
+            continue
+        public_problem = row["public_data"]
+        if not isinstance(public_problem, dict):
+            raise ProblemRepositoryError("Public problem document is invalid")
+        entries.append(
+            {
+                "id": problem_id,
+                "difficulty": row["difficulty"],
+                "version": int(row["version"]),
+            }
+        )
+        summaries.append(
+            {
+                "id": problem_id,
+                "title": row["title"],
+                "difficulty": row["difficulty"],
+            }
+        )
+        public_problems[problem_id] = public_problem
+
+    return {
+        "manifest": {
+            "schema_version": "1.0.0",
+            "bank_version": int(rows[0]["bank_version"]),
+            "problems": entries,
+        },
+        "summaries": summaries,
+        "public": public_problems,
+    }
+
+
+def load_database_problem_bank_bundle() -> dict[str, Any]:
+    global _problem_bank_cache
+    now = time.monotonic()
+    cache_seconds = _read_cache_seconds()
+    with _problem_bank_cache_lock:
+        if (
+            cache_seconds > 0
+            and _problem_bank_cache is not None
+            and now - _problem_bank_cache[0] < cache_seconds
+        ):
+            return _problem_bank_cache[1]
+        bundle = _query_database_problem_bank_bundle()
+        if cache_seconds > 0:
+            _problem_bank_cache = (time.monotonic(), bundle)
+        else:
+            _problem_bank_cache = None
+        return bundle
+
+
+def load_database_manifest() -> dict[str, Any]:
+    return load_database_problem_bank_bundle()["manifest"]
+
+
+def list_database_problem_summaries(
+    difficulty: str | None = None,
+) -> list[dict[str, Any]]:
+    summaries = load_database_problem_bank_bundle()["summaries"]
+    if difficulty is None:
+        return list(summaries)
+    return [summary for summary in summaries if summary["difficulty"] == difficulty]
 
 
 def _load_problem_document(problem_id: str, column: str) -> dict[str, Any]:
@@ -137,7 +204,10 @@ def _load_problem_document(problem_id: str, column: str) -> dict[str, Any]:
 
 
 def load_database_public_problem(problem_id: str) -> dict[str, Any]:
-    return _load_problem_document(problem_id, "public_data")
+    problem = load_database_problem_bank_bundle()["public"].get(problem_id)
+    if not isinstance(problem, dict):
+        raise ProblemRepositoryError("Public problem document is missing")
+    return problem
 
 
 def load_database_private_problem(problem_id: str) -> dict[str, Any]:
@@ -210,6 +280,7 @@ def store_database_problem(
         raise ProblemRepositoryError("Problem insert failed") from exc
     if state is None:
         raise ProblemRepositoryError("Problem bank version update failed")
+    clear_database_problem_cache()
     return {
         "bank_version": int(state["bank_version"]),
         "problem": {

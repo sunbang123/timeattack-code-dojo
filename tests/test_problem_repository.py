@@ -6,10 +6,23 @@ from api.problem_service import (
     load_manifest,
     load_public_problem,
 )
-from api.problem_repository import database_url
+from api.problem_repository import (
+    clear_database_problem_cache,
+    database_url,
+    list_database_problem_summaries,
+    load_database_manifest,
+    load_database_problem_bank_bundle,
+    load_database_public_problem,
+)
 
 
 class PersistentProblemBankReadTest(unittest.TestCase):
+    def setUp(self) -> None:
+        clear_database_problem_cache()
+
+    def tearDown(self) -> None:
+        clear_database_problem_cache()
+
     @patch.dict(
         "os.environ",
         {
@@ -29,20 +42,47 @@ class PersistentProblemBankReadTest(unittest.TestCase):
             ),
         )
 
-    @patch("api.problem_service.load_database_manifest")
-    @patch("api.problem_service.database_enabled", return_value=True)
-    def test_database_manifest_reads_are_not_process_cached(
-        self, _database_enabled_mock, load_database_manifest_mock
+    @patch("api.problem_repository._query_database_problem_bank_bundle")
+    def test_database_readers_share_one_short_lived_bundle_query(
+        self, query_bundle_mock
     ) -> None:
-        load_database_manifest_mock.return_value = {
-            "schema_version": "1.0.0",
-            "bank_version": 7,
-            "problems": [],
+        query_bundle_mock.return_value = {
+            "manifest": {
+                "schema_version": "1.0.0",
+                "bank_version": 7,
+                "problems": [
+                    {"id": "persistent-problem", "difficulty": "hard", "version": 1}
+                ],
+            },
+            "summaries": [
+                {
+                    "id": "persistent-problem",
+                    "title": "Persistent problem",
+                    "difficulty": "hard",
+                }
+            ],
+            "public": {
+                "persistent-problem": {
+                    "id": "persistent-problem",
+                    "title": "Persistent problem",
+                }
+            },
         }
 
-        self.assertEqual(load_manifest()["bank_version"], 7)
-        self.assertEqual(load_manifest()["bank_version"], 7)
-        self.assertEqual(load_database_manifest_mock.call_count, 2)
+        self.assertEqual(load_database_manifest()["bank_version"], 7)
+        self.assertEqual(
+            list_database_problem_summaries("hard")[0]["id"],
+            "persistent-problem",
+        )
+        self.assertEqual(
+            load_database_public_problem("persistent-problem")["title"],
+            "Persistent problem",
+        )
+        self.assertIs(
+            load_database_problem_bank_bundle(),
+            load_database_problem_bank_bundle(),
+        )
+        query_bundle_mock.assert_called_once_with()
 
     @patch("api.problem_service.load_database_public_problem")
     @patch("api.problem_service.database_enabled", return_value=True)
