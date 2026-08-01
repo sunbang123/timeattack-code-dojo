@@ -4,6 +4,7 @@ from unittest.mock import patch
 from api.problem_generation_service import (
     ProblemGenerationError,
     _reference_tests,
+    _store_generated_problem,
     _unique_problem_id,
     _validate_generated_content,
     _validate_reference_solutions,
@@ -94,6 +95,33 @@ class ProblemGenerationValidationTest(unittest.TestCase):
             _unique_problem_id("two-pointer-window", {"two-pointer-window"}),
             "two-pointer-window-2",
         )
+
+    @patch("api.problem_generation_service.store_database_problem")
+    @patch("api.problem_generation_service.database_enabled", return_value=True)
+    def test_database_storage_builds_the_same_public_and_private_documents(
+        self, _database_enabled_mock, store_database_problem_mock
+    ) -> None:
+        store_database_problem_mock.return_value = {
+            "bank_version": 6,
+            "problem": {
+                "id": "two-pointer-window",
+                "title": "투 포인터 구간",
+                "difficulty": "medium",
+            },
+        }
+        content = valid_generated_content()
+
+        result = _store_generated_problem(content, "medium")
+
+        self.assertEqual(result["bank_version"], 6)
+        id_suggestion, difficulty, factory = store_database_problem_mock.call_args.args
+        self.assertEqual(id_suggestion, "two-pointer-window")
+        self.assertEqual(difficulty, "medium")
+        public_problem, private_problem = factory("two-pointer-window-2")
+        self.assertEqual(public_problem["id"], "two-pointer-window-2")
+        self.assertEqual(public_problem["modes"]["intermediate"]["time_limit_seconds"], 330)
+        self.assertEqual(private_problem["problem_id"], "two-pointer-window-2")
+        self.assertEqual(private_problem["hidden_tests"], content["hidden_tests"])
 
     @patch("api.problem_generation_service._grade_code")
     def test_reference_validation_runs_every_case_in_both_languages(

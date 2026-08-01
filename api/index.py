@@ -19,6 +19,11 @@ from api.problem_generation_service import (
     create_problem,
     generate_problem,
 )
+from api.problem_authorization import (
+    ProblemAuthorConfigurationError,
+    ProblemAuthorUnauthorizedError,
+    verify_problem_authorization,
+)
 from api.solution_service import (
     SolutionAccessError,
     get_solution_payload,
@@ -118,6 +123,12 @@ def problem() -> tuple[Response, int]:
 @app.post("/generate_problem")
 @app.post("/api/generate_problem")
 def generate_problem_route() -> tuple[Response, int]:
+    try:
+        verify_problem_authorization(request.headers.get("Authorization"))
+    except ProblemAuthorConfigurationError as error:
+        abort(503, description=str(error))
+    except ProblemAuthorUnauthorizedError as error:
+        abort(401, description=str(error))
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict):
         abort(400, description="Request body must be a JSON object")
@@ -142,6 +153,12 @@ def generate_problem_route() -> tuple[Response, int]:
 @app.post("/create_problem")
 @app.post("/api/create_problem")
 def create_problem_route() -> tuple[Response, int]:
+    try:
+        verify_problem_authorization(request.headers.get("Authorization"))
+    except ProblemAuthorConfigurationError as error:
+        abort(503, description=str(error))
+    except ProblemAuthorUnauthorizedError as error:
+        abort(401, description=str(error))
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict):
         abort(400, description="Request body must be a JSON object")

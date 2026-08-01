@@ -168,10 +168,14 @@ export async function fetchProblem(url: string): Promise<ProblemResponse> {
 export async function generateProblem(
   prompt: string,
   difficulty: Difficulty,
+  authorToken: string,
 ): Promise<GeneratedProblemResponse> {
   const response = await fetch("/api/generate_problem", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(authorToken ? { Authorization: `Bearer ${authorToken}` } : {}),
+    },
     body: JSON.stringify({ prompt, difficulty }),
   });
   const payload = (await response.json()) as ErrorResponse &
@@ -188,10 +192,14 @@ export async function generateProblem(
 export async function createProblem(
   content: ManualProblemContent,
   difficulty: Difficulty,
+  authorToken: string,
 ): Promise<CreatedProblemResponse> {
   const response = await fetch("/api/create_problem", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(authorToken ? { Authorization: `Bearer ${authorToken}` } : {}),
+    },
     body: JSON.stringify({ content, difficulty }),
   });
   const payload = (await response.json()) as ErrorResponse & Partial<CreatedProblemResponse>;

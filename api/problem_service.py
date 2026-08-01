@@ -7,6 +7,15 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from api.problem_repository import (
+    ProblemRepositoryError,
+    database_enabled,
+    list_database_problem_summaries,
+    load_database_manifest,
+    load_database_private_problem,
+    load_database_public_problem,
+)
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROBLEM_BANK_ROOT = PROJECT_ROOT / "problem_bank"
@@ -43,7 +52,7 @@ def load_problem_bank_bundle() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
-def load_manifest() -> dict[str, Any]:
+def _load_local_manifest() -> dict[str, Any]:
     path = PROBLEM_BANK_ROOT / "manifest.json"
     manifest = (
         _read_json(path)
@@ -58,7 +67,7 @@ def load_manifest() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=16)
-def load_public_problem(problem_id: str) -> dict[str, Any]:
+def _load_local_public_problem(problem_id: str) -> dict[str, Any]:
     path = PROBLEM_BANK_ROOT / "public" / f"{problem_id}.json"
     if path.is_file():
         problem = _read_json(path)
@@ -74,7 +83,7 @@ def load_public_problem(problem_id: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=16)
-def load_private_problem(problem_id: str) -> dict[str, Any]:
+def _load_local_private_problem(problem_id: str) -> dict[str, Any]:
     path = PROBLEM_BANK_ROOT / "private" / f"{problem_id}.json"
     if path.is_file():
         problem = _read_json(path)
@@ -87,6 +96,54 @@ def load_private_problem(problem_id: str) -> dict[str, Any]:
     if problem.get("problem_id") != problem_id:
         raise ProblemBankError("Private problem id does not match its manifest entry")
     return problem
+
+
+def load_manifest() -> dict[str, Any]:
+    if not database_enabled():
+        return _load_local_manifest()
+    try:
+        return load_database_manifest()
+    except ProblemRepositoryError as exc:
+        raise ProblemBankError("Persistent problem bank could not be loaded") from exc
+
+
+def load_public_problem(problem_id: str) -> dict[str, Any]:
+    if not database_enabled():
+        return _load_local_public_problem(problem_id)
+    try:
+        problem = load_database_public_problem(problem_id)
+    except ProblemRepositoryError as exc:
+        raise ProblemBankError("Persistent public problem could not be loaded") from exc
+    if problem.get("id") != problem_id:
+        raise ProblemBankError("Public problem id does not match its manifest entry")
+    return problem
+
+
+def load_private_problem(problem_id: str) -> dict[str, Any]:
+    if not database_enabled():
+        return _load_local_private_problem(problem_id)
+    try:
+        problem = load_database_private_problem(problem_id)
+    except ProblemRepositoryError as exc:
+        raise ProblemBankError("Persistent private problem could not be loaded") from exc
+    if problem.get("problem_id") != problem_id:
+        raise ProblemBankError("Private problem id does not match its manifest entry")
+    return problem
+
+
+def clear_local_problem_cache() -> None:
+    """Clear only JSON fallback caches; database reads intentionally stay uncached."""
+    load_problem_bank_bundle.cache_clear()
+    _load_local_manifest.cache_clear()
+    _load_local_public_problem.cache_clear()
+    _load_local_private_problem.cache_clear()
+
+
+# Preserve the cache-clearing hooks used by validation code while keeping
+# database reads uncached across serverless instances.
+load_manifest.cache_clear = _load_local_manifest.cache_clear  # type: ignore[attr-defined]
+load_public_problem.cache_clear = _load_local_public_problem.cache_clear  # type: ignore[attr-defined]
+load_private_problem.cache_clear = _load_local_private_problem.cache_clear  # type: ignore[attr-defined]
 
 
 def find_problem_entry(
@@ -103,6 +160,13 @@ def find_problem_entry(
 
 
 def list_problem_summaries(difficulty: str | None = None) -> list[dict[str, Any]]:
+    if database_enabled():
+        try:
+            return list_database_problem_summaries(difficulty)
+        except ProblemRepositoryError as exc:
+            raise ProblemBankError(
+                "Persistent problem summaries could not be loaded"
+            ) from exc
     summaries = []
     for entry in load_manifest()["problems"]:
         if difficulty is not None and entry.get("difficulty") != difficulty:
@@ -165,10 +229,18 @@ def get_problem_response(
     language: str,
     problem_id: str | None = None,
 ) -> dict[str, Any] | None:
-    entry = find_problem_entry(difficulty, problem_id)
+    manifest = load_manifest()
+    entry = next(
+        (
+            item
+            for item in manifest["problems"]
+            if (difficulty is None or item.get("difficulty") == difficulty)
+            and (problem_id is None or item.get("id") == problem_id)
+        ),
+        None,
+    )
     if entry is None:
         return None
-    manifest = load_manifest()
     return {
         "available_problems": list_problem_summaries(difficulty),
         "bank_version": manifest["bank_version"],

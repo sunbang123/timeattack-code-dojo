@@ -104,6 +104,59 @@ class ProblemGenerationApiTest(unittest.TestCase):
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.json["error"]["message"], "judge unavailable")
 
+    @patch("api.index.generate_problem")
+    @patch.dict(
+        "os.environ",
+        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": ""},
+    )
+    def test_generation_requires_server_author_key_configuration(
+        self, generate_mock
+    ) -> None:
+        response = self.client.post("/api/generate_problem", json=self.payload)
+
+        self.assertEqual(response.status_code, 503)
+        generate_mock.assert_not_called()
+
+    @patch("api.index.generate_problem")
+    @patch.dict(
+        "os.environ",
+        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": "test-author-key"},
+    )
+    def test_generation_rejects_an_invalid_author_key(self, generate_mock) -> None:
+        response = self.client.post(
+            "/api/generate_problem",
+            json=self.payload,
+            headers={"Authorization": "Bearer wrong-key"},
+        )
+
+        self.assertEqual(response.status_code, 401)
+        generate_mock.assert_not_called()
+
+    @patch("api.index.generate_problem")
+    @patch.dict(
+        "os.environ",
+        {"APP_ENV": "production", "PROBLEM_AUTHOR_TOKEN": "test-author-key"},
+    )
+    def test_generation_accepts_the_configured_author_key(self, generate_mock) -> None:
+        generate_mock.return_value = {
+            "bank_version": 6,
+            "model": "test-model",
+            "problem": {
+                "id": "authorized-problem",
+                "title": "Authorized problem",
+                "difficulty": "medium",
+            },
+        }
+
+        response = self.client.post(
+            "/api/generate_problem",
+            json=self.payload,
+            headers={"Authorization": "Bearer test-author-key"},
+        )
+
+        self.assertEqual(response.status_code, 201)
+        generate_mock.assert_called_once()
+
 
 class ProblemCreationApiTest(unittest.TestCase):
     def setUp(self) -> None:

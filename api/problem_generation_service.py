@@ -12,9 +12,12 @@ from typing import Any
 from api.problem_service import (
     DIFFICULTIES,
     PROBLEM_BANK_ROOT,
-    load_manifest,
-    load_private_problem,
-    load_public_problem,
+    clear_local_problem_cache,
+)
+from api.problem_repository import (
+    ProblemRepositoryError,
+    database_enabled,
+    store_database_problem,
 )
 from api.submission_service import ProviderError, _grade_code, _request_json
 
@@ -384,48 +387,71 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
     temporary_path.replace(path)
 
 
+def _build_problem_documents(
+    content: dict[str, Any], difficulty: str, problem_id: str
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    beginner_time, intermediate_time, expert_time = _TIME_LIMITS[difficulty]
+    public_problem = {
+        "schema_version": "1.0.0",
+        "id": problem_id,
+        "version": 1,
+        "title": content["title"].strip(),
+        "difficulty": difficulty,
+        "tags": list(dict.fromkeys(tag.strip() for tag in content["tags"] if tag.strip())),
+        "supported_languages": ["python", "cpp"],
+        "statement": content["statement"],
+        "examples": content["examples"],
+        "modes": {
+            "beginner": {
+                "time_limit_seconds": beginner_time,
+                "answer_format": "pseudocode",
+                "prompt": content["beginner_prompt"],
+            },
+            "intermediate": {
+                "time_limit_seconds": intermediate_time,
+                "answer_format": "code",
+                "skeletons": content["intermediate_skeletons"],
+            },
+            "expert": {
+                "time_limit_seconds": expert_time,
+                "answer_format": "code",
+                "starter_templates": content["expert_templates"],
+            },
+        },
+    }
+    private_problem = {
+        "schema_version": "1.0.0",
+        "problem_id": problem_id,
+        "version": 1,
+        "pseudocode_rubric": content["pseudocode_rubric"],
+        "reference_solutions": content["reference_solutions"],
+        "hidden_tests": content["hidden_tests"],
+    }
+    return public_problem, private_problem
+
+
 def _store_generated_problem(content: dict[str, Any], difficulty: str) -> dict[str, Any]:
+    if database_enabled():
+        try:
+            return store_database_problem(
+                content["id_suggestion"],
+                difficulty,
+                lambda problem_id: _build_problem_documents(
+                    content, difficulty, problem_id
+                ),
+            )
+        except ProblemRepositoryError as exc:
+            raise ProblemGenerationError(
+                "생성한 문제를 영구 문제은행에 저장하지 못했습니다."
+            ) from exc
+
     with _WRITE_LOCK:
         manifest = json.loads((PROBLEM_BANK_ROOT / "manifest.json").read_text(encoding="utf-8"))
         existing_ids = {entry["id"] for entry in manifest["problems"]}
         problem_id = _unique_problem_id(content["id_suggestion"], existing_ids)
-        beginner_time, intermediate_time, expert_time = _TIME_LIMITS[difficulty]
-        public_problem = {
-            "schema_version": "1.0.0",
-            "id": problem_id,
-            "version": 1,
-            "title": content["title"].strip(),
-            "difficulty": difficulty,
-            "tags": list(dict.fromkeys(tag.strip() for tag in content["tags"] if tag.strip())),
-            "supported_languages": ["python", "cpp"],
-            "statement": content["statement"],
-            "examples": content["examples"],
-            "modes": {
-                "beginner": {
-                    "time_limit_seconds": beginner_time,
-                    "answer_format": "pseudocode",
-                    "prompt": content["beginner_prompt"],
-                },
-                "intermediate": {
-                    "time_limit_seconds": intermediate_time,
-                    "answer_format": "code",
-                    "skeletons": content["intermediate_skeletons"],
-                },
-                "expert": {
-                    "time_limit_seconds": expert_time,
-                    "answer_format": "code",
-                    "starter_templates": content["expert_templates"],
-                },
-            },
-        }
-        private_problem = {
-            "schema_version": "1.0.0",
-            "problem_id": problem_id,
-            "version": 1,
-            "pseudocode_rubric": content["pseudocode_rubric"],
-            "reference_solutions": content["reference_solutions"],
-            "hidden_tests": content["hidden_tests"],
-        }
+        public_problem, private_problem = _build_problem_documents(
+            content, difficulty, problem_id
+        )
         next_manifest = {
             **manifest,
             "bank_version": int(manifest["bank_version"]) + 1,
@@ -445,9 +471,7 @@ def _store_generated_problem(content: dict[str, Any], difficulty: str) -> dict[s
             public_path.unlink(missing_ok=True)
             private_path.unlink(missing_ok=True)
             raise ProblemGenerationError("생성된 문제를 문제은행에 저장하지 못했습니다.") from exc
-        load_manifest.cache_clear()
-        load_private_problem.cache_clear()
-        load_public_problem.cache_clear()
+        clear_local_problem_cache()
         return {
             "bank_version": next_manifest["bank_version"],
             "problem": {
